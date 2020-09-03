@@ -1,0 +1,12 @@
+export const SPACE = 32
+export const PAGE_UP = 33
+export const PAGE_DOWN = 34
+export const ENTER = 13
+export const ARROW_LEFT = 37
+export const ARROW_UP = 38
+export const ARROW_RIGHT = 39
+export const ARROW_DOWN = 40
+export const ALT = 18
+export const C = 67
+export const I = 73
+export const SHIFT = 16
