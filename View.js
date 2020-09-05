@@ -1,10 +1,11 @@
-import { Canvas } from './Canvas'
-
 export class View {
-   constructor(canvas, frame) {
+   constructor(frame) {
+      if (frame == undefined) {
+         console.error('frame must be set on view')
+      }
       this.paint = this.paint.bind(this)
       this.onClick = this.onClick.bind(this)
-      this.canvas = canvas
+      this.canvas = undefined
       this.frame = frame
       this.subviews = []
       this.backgroundColor = undefined
@@ -106,28 +107,28 @@ export class View {
       }
       this.superview.repaint()
    }
-   paint(timestamp) {
+   paint(canvas, timestamp) {
    }
-   paintBase(timestamp) {
+   paintBase(canvas, timestamp) {
       if (this.hidden) return
       if (this.animation !== undefined) this.handleAnimation(timestamp)
       const needsTranslation = this.frame.x !== 0 || this.frame.y !== 0
       if (needsTranslation) {
-         this.canvas.ctx.save()
-         this.canvas.ctx.translate(this.frame.x, this.frame.y)
+         canvas.ctx.save()
+         canvas.ctx.translate(this.frame.x, this.frame.y)
       }
-      if (this.backgroundColor != undefined) this.canvas.paintRect(0, 0, this.frame.width, this.frame.height, this.backgroundColor)
-      if (this.strokeColor !== undefined) this.canvas.drawRect(0, 0, this.frame.width, this.frame.height, this.strokeColor)
+      if (this.backgroundColor != undefined) canvas.paintRect(0, 0, this.frame.width, this.frame.height, this.backgroundColor)
+      if (this.strokeColor !== undefined) canvas.drawRect(0, 0, this.frame.width, this.frame.height, this.strokeColor)
       
-      this.paint(timestamp)
+      this.paint(canvas, timestamp)
       
       // TODO: clip view?
       for (let i = 0, len = this.subviews.length; i < len; i++) {
          const view = this.subviews[i]
-         view.paintBase(timestamp)
+         view.paintBase(canvas, timestamp)
       }
       if (needsTranslation) {
-         this.canvas.ctx.restore()
+         canvas.ctx.restore()
       }
    }
 
@@ -148,13 +149,12 @@ export class View {
 }
 
 // Must be the first View in a canvas.
-export default class SuperView extends View {
-   constructor(id) {
-      const canvas = new Canvas(id)
-      super(canvas, canvas.getFrame())
+export default class RootView extends View {
+   constructor(frame, canvas) {
+      super(frame)
+      this.canvas = canvas
       this.willRepaint = false
       this.actuallyRepaint = this.actuallyRepaint.bind(this)
-      canvas.rootview = this
       this.lastPaint = 0
       canvas.domCanvas.addEventListener('mousedown', this.onClick)
       window.requestAnimationFrame(this.actuallyRepaint)
@@ -172,7 +172,7 @@ export default class SuperView extends View {
    }
    actuallyRepaint(timestamp) {
       this.canvas.clear()
-      this.paintBase(timestamp)
+      this.paintBase(this.canvas, timestamp)
       if (this.willRepaint) window.requestAnimationFrame(this.actuallyRepaint)
    }
    canvasSizeChanged(width, height) {

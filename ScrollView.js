@@ -2,14 +2,15 @@ import { View } from './View'
 import { ScrollVertical, ScrollHorizontal } from './Scroll'
 
 export default class ScrollView extends View {
-   constructor(canvas, SCROLL_WIDTH) {
-      super(canvas, canvas.getFrame())
+   constructor(frame, SCROLL_WIDTH) {
+      super(frame)
       this.scrolledHorizontal = this.scrolledHorizontal.bind(this)
       this.scrolledVertical = this.scrolledVertical.bind(this)
 
       this.SCROLL_WIDTH = SCROLL_WIDTH
-      const scrollV = new ScrollVertical(canvas, this.getVerticalScrollFrame(this.frame.width, this.frame.height), this.scrolledVertical)
-      const scrollH = new ScrollHorizontal(canvas, this.getHorizontalScrollFrame(this.frame.width, this.frame.height), this.scrolledHorizontal)
+
+      const scrollV = new ScrollVertical(this.getVerticalScrollFrame(frame.width, frame.height), this.scrolledVertical)
+      const scrollH = new ScrollHorizontal(this.getHorizontalScrollFrame(frame.width, frame.height), this.scrolledHorizontal)
       this.vertical = scrollV
       this.horizontal = scrollH
       this.addSubview(scrollH)

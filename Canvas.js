@@ -1,5 +1,8 @@
+import RootView from "./View"
+
 export class Canvas {
-   constructor(canvas) {
+   constructor(canvas, size) {
+      this.getFrame = this.getFrame.bind(this)
       if (typeof canvas === 'string') {
          this.domCanvas = document.getElementById(canvas)
       } else {
@@ -10,8 +13,8 @@ export class Canvas {
       // this.domCanvas.width = Math.ceil(this.domCanvas.width * 2);
       // this.domCanvas.height = Math.ceil(this.domCanvas.height * 2);
       this.ctx = this.domCanvas.getContext('2d')
-      
-      this.rootview = undefined
+      this.rootview = new RootView({ x: 0, y: 0, ...size }, this)
+      this.setFrame(size.width, size.height)
    }
    getFrame() {
       return {

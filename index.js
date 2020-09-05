@@ -8,21 +8,22 @@ import ScrollView from './ScrollView.js';
 import TableViewController from './TableViewController.js';
 import SuperView from './View.js';
 import TableEventHandler from './TableEventHandler.js';
+import { Canvas } from './Canvas.js';
 
-const CELL_HEIGHT = 40
+const CELL_HEIGHT = 30
 const SCROLL_WIDTH = 10
 
-const entities = new Array(1000).fill({ a: 'val1', b: 'val2' })
-const columns = {
-    'A': { title: 'A', mapper: e => e.a, visible: true, width: 100 },
-    'B': { title: 'B', mapper: e => e.b, visible: true, width: 100 },
-}
+const entities = new Array(1000).fill(null).map((e, i) => ({ a: 'Cell ' + i  }))
+const colArr = new Array(100).fill(null).map((e, i) => ({ title: `Column ${i}`, mapper: a => `${a.a}${i}`, visible: true, width: 100 }))
+const columns = { ...colArr }
 
 const entityIds = Object.keys(entities)
+const columnDisplayOrder = Object.keys(columns)
 
 const tableId = "tableId"
-const columnDisplayOrder = Object.keys(columns)
-const superview = new SuperView(`canvas-${tableId}`)
+const canvas = new Canvas('canvas-tableId', { width: 1000, height: 700 })
+const superview = canvas.rootview
+
 const table = new TableViewController(
     superview.canvas,
     entities,
@@ -30,17 +31,17 @@ const table = new TableViewController(
     CELL_HEIGHT,
     columns,
     columnDisplayOrder,
-    true, // props.useRowSelection,
-    false,
+    true,
 )
 table.setEmptyStateText('No data available')
 const tableEventHandler = new TableEventHandler(
+    canvas,
     table.tableView,
     tableId,
     { show: () => {}, hide: () => {} },
     { show: () => {}, hide: () => {} }
 )
-const scrollview = new ScrollView(superview.canvas, SCROLL_WIDTH)
+const scrollview = new ScrollView(superview.getFrame(), SCROLL_WIDTH)
 scrollview.setViewToBeScrolled(table)
 table.tableView.setDidMove(() => {})
 superview.addSubview(scrollview)

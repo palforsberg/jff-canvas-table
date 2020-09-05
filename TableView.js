@@ -3,11 +3,10 @@ import { View } from './View'
 import { ConfettiView } from './ConfettiView'
 
 export class TableView extends View {
-   constructor(canvas, rows, rowIds, cellHeight, columns, columnIds, isMultiSelect, isRowDetailsAvailable) {
-      // this.paint = this.paint.bind(this)
-      super(canvas, canvas.getFrame())
+   constructor(frame, rows, rowIds, cellHeight, columns, columnIds, isMultiSelect) {
+
+      super(frame)
       this.moveTo = this.moveTo.bind(this)
-      // this.canvas = canvas
       this.rowIds = rowIds
       this.rows = rows
       this.xOffset = 0
@@ -32,9 +31,8 @@ export class TableView extends View {
       this.inFocus = false
 
       this.isMultiSelect = isMultiSelect
-      this.isRowDetailsAvailable = isRowDetailsAvailable
-      this.cellPainter = new Cell(this.canvas, this.cellHeight)
-      this.iconCellPainter = new IconCell(this.canvas, this.cellHeight)
+      this.cellPainter = new Cell(this.cellHeight)
+      this.iconCellPainter = new IconCell(this.cellHeight)
       this.textColor = "#000000"
       this.lineColor = "#555555"
       this.activeColor = "#222222"
@@ -372,7 +370,7 @@ export class TableView extends View {
    // Paint table. Start from yOffset and paint rows the column starting at xOffset.
    // Paints the columnseparators during the firstrow painting.
    // Draws offscreenCanvas onto canvas.
-   paint(timestamp) {
+   paint(canvas, timestamp) {
       const cellPos = { x: 0, y: 0 }
       const textInset = { left: 0, right: 0 }
       const endRow = Math.min(this.yOffset + this.getPageHeight() + 1, this.getNumberOfRows())
@@ -380,24 +378,22 @@ export class TableView extends View {
       const minXoffset = this.getCachedMinXOffset()
       let activeFrame
       let lastColIndex
-      this.canvas.normalText()
-      this.canvas.beginLine(this.lineColor)
+      canvas.normalText()
+      canvas.beginLine(this.lineColor)
       let isFirstRow = true
-      
+
       for (let i = this.yOffset; i < endRow; i++) {
          const row = this.getRowWithIndex(i)
 
          for (let j = this.xOffset, len = this.getNumberOfColumns(); j < len; j++) {
             const column = this.getColumnWithIndex(j)
             if (!column.visible) continue
-            const iconOffset = this.isRowDetailsAvailable && j <= minXoffset ? ICON_MARGIN : 0
             const cell = column.icon !== undefined ? this.iconCellPainter : this.cellPainter
-            textInset.left = iconOffset
-            cell.paintCell(i, column, cellPos, row, textInset, this.isSelected(i))
+            cell.paintCell(canvas, i, column, cellPos, row, textInset, this.isSelected(i))
 
-            if (this.inFocus && this.isActive(j, i)) activeFrame = { x: cellPos.x + iconOffset, y: cellPos.y, width: column.width - iconOffset, height: this.cellHeight }
+            if (this.inFocus && this.isActive(j, i)) activeFrame = { x: cellPos.x, y: cellPos.y, width: column.width, height: this.cellHeight }
             if (isFirstRow) {
-               this.paintColumnSeparator(this.canvas, cellPos.x, 0, colSepHeight)
+               this.paintColumnSeparator(canvas, cellPos.x, 0, colSepHeight)
             }
 
             cellPos.x += column.width
@@ -406,23 +402,18 @@ export class TableView extends View {
                break
             }
          }
-         if (this.isRowDetailsAvailable && this.xOffset <= minXoffset) {
-            this.canvas.iconText()
-            this.canvas.drawText(5, cellPos.y + 22, String.fromCharCode('0xe086'), 'start', this.textColor)
-            this.canvas.normalText()
-         }
-         if (isFirstRow) this.paintColumnSeparator(this.canvas, cellPos.x, 0, colSepHeight)
-         this.paintRowSeparator(this.canvas, cellPos.y)
+         if (isFirstRow) this.paintColumnSeparator(canvas, cellPos.x, 0, colSepHeight)
+         this.paintRowSeparator(canvas, cellPos.y)
          cellPos.y += this.cellHeight
          cellPos.x = 0
          isFirstRow = false
       }
-      this.paintRowSeparator(this.canvas, cellPos.y)
+      this.paintRowSeparator(canvas, cellPos.y)
       this.shownRows = { y1: this.yOffset, y2: endRow }
       this.shownCols = { x1: this.xOffset, x2: lastColIndex }
-      this.canvas.endLine()
+      canvas.endLine()
       if (activeFrame !== undefined) {
-         this.canvas.drawRect(activeFrame.x + 1, activeFrame.y + 1, activeFrame.width - 2, activeFrame.height - 2, this.activeColor)
+         canvas.drawRect(activeFrame.x + 1, activeFrame.y + 1, activeFrame.width - 2, activeFrame.height - 2, this.activeColor)
       }
    }
 

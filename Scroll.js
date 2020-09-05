@@ -1,14 +1,12 @@
 import { View } from './View'
 
 class Scroll extends View {
-   constructor(canvas, frame, handler) {
-      super(canvas, frame)
+   constructor(frame, handler) {
+      super(frame)
       this.onClick = this.onClick.bind(this)
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
       this.setHandleRatio = this.setHandleRatio.bind(this)
-      // this.canvas.domCanvas.addEventListener('mousedown', this.canvasOnClick)
-      this.canvas.domCanvas.oncontextmenu = (e) => false
       window.addEventListener('mousemove', this.canvasMouseMove)
       window.addEventListener('mouseup', this.canvasMouseUp)
       this.handleLength = 50
@@ -19,7 +17,7 @@ class Scroll extends View {
 
       this.cursor = { down: false, handleDist: 0 }
       this.handler = handler
-      this.handle = new View(this.canvas, this.getHandleFrame(this.handleLength))
+      this.handle = new View(this.getHandleFrame(this.handleLength))
       this.handle.backgroundColor = this.getHandleBackgroundColor()
       this.addSubview(this.handle)
       this.hidden = false

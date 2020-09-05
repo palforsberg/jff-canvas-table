@@ -3,17 +3,16 @@ import { TableView } from './TableView'
 import { Label } from './Label'
 
 export default class TableViewController extends View {
-   constructor(canvas, rows, rowIds, cellHeight, columns, columnIds, isMultiSelect, isRowDetailsAvailable) {
-      super(canvas, canvas.getFrame())
+   constructor(canvas, rows, rowIds, cellHeight, columns, columnIds, isMultiSelect) {
+      super(canvas.getFrame())
       this.scrolledHorizontal = this.scrolledHorizontal.bind(this)
       this.scrolledVertical = this.scrolledVertical.bind(this)
-      this.tableView = new TableView(canvas, rows, rowIds, cellHeight, columns, columnIds, isMultiSelect, isRowDetailsAvailable)
-      const label = new EmptyStateView(canvas, this.frame)
+      this.tableView = new TableView(this.frame, rows, rowIds, cellHeight, columns, columnIds, isMultiSelect)
+      const label = new EmptyStateView(this.frame)
       label.font = '20px Helvetica'
       label.textColor = "gray"
       label.textAlign = 'center'
       label.backgroundColor = "yellow"
-      // label.onClick = () => console.log('clicked Label')
       this.emptyStateView = label
 
       if (rowIds.length === 0) {
@@ -105,10 +104,10 @@ export default class TableViewController extends View {
 }
 
 class EmptyStateView extends Label {
-   paint(timestamp) {
+   paint(canvas, timestamp) {
       super.paint(timestamp)
-      this.canvas.beginLine()
-      this.canvas.drawHorizontalLine(0, this.frame.width, 0.5)
-      this.canvas.endLine()
+      canvas.beginLine()
+      canvas.drawHorizontalLine(0, this.frame.width, 0.5)
+      canvas.endLine()
    }
 }

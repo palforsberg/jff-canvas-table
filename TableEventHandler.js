@@ -2,7 +2,7 @@
 import * as keyCodes from './keyCodes.js'
 
 export default class TableEventHandler {
-   constructor(table, tableId, menuDelegate, rowDetailsDelegate) {
+   constructor(canvas, table, tableId, menuDelegate) {
       this.canvasOnClick = this.canvasOnClick.bind(this)
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
@@ -14,47 +14,43 @@ export default class TableEventHandler {
       this.onBlur = this.onBlur.bind(this)
       this.isClickable = this.isClickable.bind(this)
 
-      // table.canvas.domCanvas.addEventListener('mousedown', this.canvasOnClick)
+      canvas.domCanvas.addEventListener('mousedown', this.canvasOnClick)
       document.getElementById(`canvasTable-${tableId}`).oncontextmenu = (e) => false
-      table.canvas.domCanvas.addEventListener('mousemove', this.canvasMouseMove)
+      canvas.domCanvas.addEventListener('mousemove', this.canvasMouseMove)
       window.addEventListener('mouseup', this.canvasMouseUp)
-      table.canvas.domCanvas.addEventListener('wheel', this.canvasScroll)
-      table.canvas.domCanvas.addEventListener('keydown', this.canvasKeyDown)
-      table.canvas.domCanvas.addEventListener('keyup', this.canvasKeyUp)
-      table.canvas.domCanvas.addEventListener('focus', this.onFocus)
-      table.canvas.domCanvas.addEventListener('blur', this.onBlur)
+      canvas.domCanvas.addEventListener('wheel', this.canvasScroll)
+      canvas.domCanvas.addEventListener('keydown', this.canvasKeyDown)
+      canvas.domCanvas.addEventListener('keyup', this.canvasKeyUp)
+      canvas.domCanvas.addEventListener('focus', this.onFocus)
+      canvas.domCanvas.addEventListener('blur', this.onBlur)
       this.table = table
       this.table.onClick = this.canvasOnClick
       this.menuDelegate = menuDelegate
-      this.rowDetailsDelegate = rowDetailsDelegate
-      // this.table.canvas.domCanvas.oncontextmenu = (e) => false
+      // canvas.domCanvas.oncontextmenu = (e) => false
       this.cursor = { down: false, start: { x: 0, y: 0 }, movedOutside: false }
       this.keys = { alt: false }
       this.tableId = tableId
-   }
-   reset() {
-      // this.table.canvas.domCanvas.removeEventListener('mousedown', this.canvasOnClick)
-      this.table.canvas.domCanvas.removeEventListener('mousemove', this.canvasMouseMove)
-      window.removeEventListener('mouseup', this.canvasMouseUp)
-      this.table.canvas.domCanvas.removeEventListener('wheel', this.canvasScroll)
-      this.table.canvas.domCanvas.removeEventListener('keydown', this.canvasKeyDown)
-      this.table.canvas.domCanvas.removeEventListener('keyup', this.canvasKeyUp)
-      this.table.canvas.domCanvas.removeEventListener('focus', this.onFocus)
-      this.table.canvas.domCanvas.removeEventListener('blur', this.onBlur)
-   }
+
+      this.focusOnCanvas = () => canvas.domCanvas.focus()
+
+      this.reset = () => {
+        // canvas.domCanvas.removeEventListener('mousedown', this.canvasOnClick)
+        canvas.domCanvas.removeEventListener('mousemove', this.canvasMouseMove)
+        window.removeEventListener('mouseup', this.canvasMouseUp)
+        canvas.domCanvas.removeEventListener('wheel', this.canvasScroll)
+        canvas.domCanvas.removeEventListener('keydown', this.canvasKeyDown)
+        canvas.domCanvas.removeEventListener('keyup', this.canvasKeyUp)
+        canvas.domCanvas.removeEventListener('focus', this.onFocus)
+        canvas.domCanvas.removeEventListener('blur', this.onBlur)
+      }
+    }
 
    showContextMenu(x, y) {
       this.menuDelegate.show(x, y)
    }
    hideContextMenu() {
       this.menuDelegate.hide()
-   }
-   showRowDetails(y) {
-      this.rowDetailsDelegate.show(y)
-   }
-   hideRowDetails() {
-      this.rowDetailsDelegate.hide()
-   }
+   }   
 
    onFocus() {
       this.table.focused()
@@ -73,7 +69,7 @@ export default class TableEventHandler {
    canvasOnClick(event) {
       // console.log('mouse down ', event)
       if (!this.table.inFocus) {
-         this.table.canvas.domCanvas.focus()
+         this.focusOnCanvas()
       }
       if (event.button == 0) { // Left click
          this.leftClickDown(event)
@@ -101,26 +97,22 @@ export default class TableEventHandler {
       } else if (event.button == 2) { // Right click
          this.rightClickUp(event, currentCell)
       }
-      if (event.target === this.table.canvas.domCanvas && !this.isRowDetailsAvailable(event)) {
-         this.hideRowDetails()
-      }
    }
 
    hover(event, currentCell) {
-      if (this.isClickable(event, currentCell) && this.table.isEventInside(event)) {
-         this.table.canvas.domCanvas.style.cursor = 'pointer'
-      } else {
-         this.table.canvas.domCanvas.style.cursor = 'default'
-      }
+    //   if (this.isClickable(event, currentCell) && this.table.isEventInside(event)) {
+    //      canvas.domCanvas.style.cursor = 'pointer'
+    //   } else {
+    //      canvas.domCanvas.style.cursor = 'default'
+    //   }
    }
    leftClickDown(event) {
       const cell = this.getCellForEvent(event)
       this.cursor.down = true
       this.cursor.movedOutside = false
       this.cursor.start = cell
-      if (!this.isRowDetailsAvailable(event)) {
-         this.table.tmpSelectRow(this.cursor.start.x, this.cursor.start.y, this.table.isMultiSelect && event.ctrlKey)
-      }
+
+      this.table.tmpSelectRow(this.cursor.start.x, this.cursor.start.y, this.table.isMultiSelect && event.ctrlKey)
 
       this.hideContextMenu()
       event.preventDefault()
@@ -138,10 +130,7 @@ export default class TableEventHandler {
    leftClickUp(event, currentCell) {
       if (!this.cursor.movedOutside) { // no cursor movement within one cell. Handle cell.onClick
          const column = this.table.getColumnWithIndex(currentCell.x)
-         if (this.isRowDetailsAvailable(event)) {
-            this.showRowDetails(currentCell.y)
-            // return
-         } else if (this.isClickable(event, currentCell)) {
+         if (this.isClickable(event, currentCell)) {
             column.onClick(this.table.getRowWithIndex(currentCell.y))
          }
       }
@@ -155,7 +144,7 @@ export default class TableEventHandler {
          this.table.selectRow(currentCell.x, currentCell.y, this.table.isMultiSelect && event.ctrlKey)
       }
       console.log('rc select cell ', currentCell)
-      this.table.active = currentCell // can be set outside table..
+      this.table.active = currentCell //§ can be set outside table..
       this.hideContextMenu()
       this.showContextMenu(event.layerX, event.layerY)
       event.preventDefault()
@@ -179,19 +168,19 @@ export default class TableEventHandler {
       let handled = false
 
       switch (event.keyCode) {
-         case keyCodes.SPACE: // Space
+         case keyCodes.SPACE: 
             this.toggleSelect(this.table.active, event.ctrlKey && this.table.isMultiSelect)
             handled = true
             break
-         case keyCodes.PAGE_UP: // Page Up
+         case keyCodes.PAGE_UP:
             this.table.moveActive(0, -this.table.getPageHeight())
             handled = true
             break
-         case keyCodes.PAGE_DOWN: // Page Down
+         case keyCodes.PAGE_DOWN:
             this.table.moveActive(0, this.table.getPageHeight())
             handled = true
             break
-         case keyCodes.ENTER: { // Enter
+         case keyCodes.ENTER: {
             const active = this.table.active
             if (active.x >= 0 && active.y >= 0) {
                const column = this.table.getColumnWithIndex(active.x)
@@ -203,24 +192,20 @@ export default class TableEventHandler {
             handled = true
             break
          }
-         case keyCodes.ARROW_LEFT: // Left Arrow
+         case keyCodes.ARROW_LEFT:
             this.table.moveActiveLeft()
             handled = true
             break
-         case keyCodes.ARROW_UP: // Up Arrow
+         case keyCodes.ARROW_UP:
             this.table.moveActiveUp()
             handled = true
             break
-         case keyCodes.ARROW_RIGHT: // Right Arrow
+         case keyCodes.ARROW_RIGHT:
             this.table.moveActiveRight()
             handled = true
             break
-         case keyCodes.ARROW_DOWN: // Down Arrow
+         case keyCodes.ARROW_DOWN:
             this.table.moveActiveDown()
-            handled = true
-            break
-         case keyCodes.I: // I
-            this.showRowDetails(this.table.active.y)
             handled = true
             break
          case keyCodes.ALT:
@@ -284,7 +269,7 @@ export default class TableEventHandler {
       inputElement.value = text
       inputElement.select()
       document.execCommand('Copy')
-      this.table.canvas.domCanvas.focus()
+      this.focusOnCanvas()
    }
    getCellForEvent(event) {
       const clickx = event.layerX
@@ -319,13 +304,7 @@ export default class TableEventHandler {
       const column = this.table.getColumnWithIndex(cell.x)
       if (column !== undefined && column.onClick !== undefined && column.mapper(row) !== undefined) {
          return true
-      } else if (this.isRowDetailsAvailable(event)) {
-         return true
       }
       return false
-   }
-
-   isRowDetailsAvailable(event) {
-      return this.table.isRowDetailsAvailable && event.layerX < 20 && this.table.xOffset <= this.table.getCachedMinXOffset()
    }
 }

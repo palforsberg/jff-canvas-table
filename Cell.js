@@ -14,14 +14,14 @@ export class Cell {
 
    // Paints cell with start at position.
    // Formats text and calculates the starting point for text.
-   paintCell(rowIndex, column, position, row, textInset, selected = false) {
-      this.canvas.paintRect(position.x, position.y, column.width, this.height, this.getBackgroundColor(rowIndex, selected))
+   paintCell(canvas, rowIndex, column, position, row, textInset, selected = false) {
+      canvas.paintRect(position.x, position.y, column.width, this.height, this.getBackgroundColor(rowIndex, selected))
       const formattedText = Cell.getText(column, row)
-      console.log('paint cell')
+
       if (formattedText.length == 0) return
 
       const start = this.getTextStartAndAlignment(formattedText, column, row, textInset, PADDING)
-      this.canvas.drawText(position.x + start.x, position.y + start.y, formattedText, start.align, this.getTextColor(column))
+      canvas.drawText(position.x + start.x, position.y + start.y, formattedText, start.align, this.getTextColor(column))
    }
 
    // Returns the startposition and alignment for column and row.
@@ -82,8 +82,8 @@ export class Cell {
 }
 
 export class IconCell extends Cell {
-   paintCell(rowIndex, column, position, row, textInset, selected = false) {
-      this.canvas.paintRect(position.x, position.y, column.width, this.height, this.getBackgroundColor(rowIndex, selected))
+   paintCell(canvas, rowIndex, column, position, row, textInset, selected = false) {
+      canvas.paintRect(position.x, position.y, column.width, this.height, this.getBackgroundColor(rowIndex, selected))
       const formattedText = IconCell.getText(column, row)
 
       if (formattedText.length == 0) return
@@ -92,11 +92,11 @@ export class IconCell extends Cell {
 
       const icon = column.icon(row)
       if (icon !== undefined) {
-         this.canvas.iconText()
-         this.canvas.drawText(start.x + position.x, start.y + position.y + 2, String.fromCharCode(icon.char), start.align, icon.color || Cell.getTextColor(column))
-         this.canvas.normalText()
+         canvas.iconText()
+         canvas.drawText(start.x + position.x, start.y + position.y + 2, String.fromCharCode(icon.char), start.align, icon.color || Cell.getTextColor(column))
+         canvas.normalText()
       }
 
-      this.canvas.drawText(start.x + position.x + ICON_MARGIN, start.y + position.y, formattedText, start.align, this.getTextColor(column))
+      canvas.drawText(start.x + position.x + ICON_MARGIN, start.y + position.y, formattedText, start.align, this.getTextColor(column))
    }
 }
