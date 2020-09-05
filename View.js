@@ -23,13 +23,10 @@ export class View {
       }
    }
    setSize(width, height) {
-      this.frame = { x: this.frame.x, y: this.frame.y, width, height }
+      this.frame = { x: this.frame.x, y: this.frame.y, width: width, height: height }
    }
    getFrame() {
       return this.frame
-   }
-   getVisibleFrame() {
-      return { width: this.hidden ? 0 : this.frame.width, height: this.hidden ? 0 : this.frame.height }
    }
    setSuperview(superview) {
       this.superview = superview

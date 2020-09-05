@@ -39,8 +39,8 @@ export default class ScrollView extends View {
       this.horizontal.setHandleRatio(hHandleRatio)
       this.vertical.setHandleRatio(vHandleRatio)
 
-      const marginHeight = height - this.horizontal.getVisibleFrame().height
-      const marginWidth = width - this.vertical.getVisibleFrame().width
+      const marginHeight = height - (this.horizontal.hidden ? 0 : this.horizontal.getFrame().height)
+      const marginWidth = width - (this.vertical.hidden ? 0 : this.vertical.getFrame().width)
 
       this.vertical.frame = this.getVerticalScrollFrame(width, marginHeight)
       this.horizontal.frame = this.getHorizontalScrollFrame(marginWidth, height)

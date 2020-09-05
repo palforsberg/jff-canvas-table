@@ -11,7 +11,7 @@ class Scroll extends View {
       window.addEventListener('mouseup', this.canvasMouseUp)
       this.handleLength = 50
       this.location = 0
-      this.backgroundColor = "white"
+      this.backgroundColor = "#ddd"
       this.activeColor = "gray"
       this.inactiveColor = "gray"
 
@@ -53,7 +53,6 @@ class Scroll extends View {
    }
 
    onClick(event) {
-      // console.log('clicked scrollbar')
       if (event.button == 0) {
          this.cursor.down = true
          this.cursor.handleDist = this.location - this.getLocationFromEvent(event)

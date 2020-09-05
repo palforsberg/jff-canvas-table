@@ -6,7 +6,6 @@ const global = {
 }
 import ScrollView from './ScrollView.js';
 import TableViewController from './TableViewController.js';
-import SuperView from './View.js';
 import TableEventHandler from './TableEventHandler.js';
 import { Canvas } from './Canvas.js';
 
@@ -23,7 +22,6 @@ const columnDisplayOrder = Object.keys(columns)
 const tableId = "tableId"
 const canvas = new Canvas('canvas-tableId', { width: 1000, height: 700 })
 const superview = canvas.rootview
-
 const table = new TableViewController(
     superview.canvas,
     entities,

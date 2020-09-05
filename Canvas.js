@@ -2,16 +2,12 @@ import RootView from "./View"
 
 export class Canvas {
    constructor(canvas, size) {
-      this.getFrame = this.getFrame.bind(this)
       if (typeof canvas === 'string') {
          this.domCanvas = document.getElementById(canvas)
       } else {
          this.domCanvas = canvas
       }
-      // this.domCanvas.style.width = this.domCanvas.width
-      // this.domCanvas.style.height = this.domCanvas.height
-      // this.domCanvas.width = Math.ceil(this.domCanvas.width * 2);
-      // this.domCanvas.height = Math.ceil(this.domCanvas.height * 2);
+      this.scaleFactor = 2
       this.ctx = this.domCanvas.getContext('2d')
       this.rootview = new RootView({ x: 0, y: 0, ...size }, this)
       this.setFrame(size.width, size.height)
@@ -20,16 +16,21 @@ export class Canvas {
       return {
          x: 0,
          y: 0,
-         width: this.domCanvas.width,
-         height: this.domCanvas.height,
+         width: Math.ceil(this.domCanvas.width / this.scaleFactor),
+         height: Math.ceil(this.domCanvas.height / this.scaleFactor),
       }
    }
    setFrame(width, height) {
       const tempFont = this.ctx.font
       const tempFillStyle = this.ctx.fillStyle
       const tempStrokeStyle = this.ctx.strokeStyle
-      this.domCanvas.width = width
-      this.domCanvas.height = height
+
+      this.domCanvas.style.width = width
+      this.domCanvas.style.height = height
+      this.domCanvas.width = Math.ceil(width * this.scaleFactor)
+      this.domCanvas.height = Math.ceil(height * this.scaleFactor)
+      // this.ctx.scale(1, 1)
+      this.ctx.scale(this.scaleFactor, this.scaleFactor)
       this.ctx.font = tempFont
       this.ctx.fillStyle = tempFillStyle
       this.ctx.strokeStyle = tempStrokeStyle

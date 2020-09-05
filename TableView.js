@@ -374,7 +374,7 @@ export class TableView extends View {
       const cellPos = { x: 0, y: 0 }
       const textInset = { left: 0, right: 0 }
       const endRow = Math.min(this.yOffset + this.getPageHeight() + 1, this.getNumberOfRows())
-      const colSepHeight = this.getPageHeight() * this.cellHeight// (endRow - this.yOffset) * this.cellHeight
+      const colSepHeight = this.getPageHeight() * this.cellHeight// (getNumberOfRows - this.yOffset) * this.cellHeight
       const minXoffset = this.getCachedMinXOffset()
       let activeFrame
       let lastColIndex

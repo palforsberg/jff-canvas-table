@@ -17,7 +17,6 @@ export class Cell {
    paintCell(canvas, rowIndex, column, position, row, textInset, selected = false) {
       canvas.paintRect(position.x, position.y, column.width, this.height, this.getBackgroundColor(rowIndex, selected))
       const formattedText = Cell.getText(column, row)
-
       if (formattedText.length == 0) return
 
       const start = this.getTextStartAndAlignment(formattedText, column, row, textInset, PADDING)
@@ -73,7 +72,7 @@ export class Cell {
    static getText(column, row) {
       const text = column.mapper(row)
       const formattedText = column.numberFormatter !== undefined ? column.numberFormatter(text) : text
-      return formattedText !== undefined ? formattedText : ''
+      return formattedText || ''
    }
 
    static getCellClass(column) {
