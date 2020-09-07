@@ -1,45 +1,28 @@
-const global = {
-    styles: {
-        backgroundMain: 'white',
-        separator: 'black',
-    }
-}
 import ScrollView from './ScrollView.js';
-import TableViewController from './TableViewController.js';
+import TableView from './TableView.js';
 import TableEventHandler from './TableEventHandler.js';
 import { Canvas } from './Canvas.js';
 
 const CELL_HEIGHT = 30
-const SCROLL_WIDTH = 10
+const SCROLL_WIDTH = 12
 
-const entities = new Array(1000).fill(null).map((e, i) => ({ a: 'Cell ' + i  }))
-const colArr = new Array(100).fill(null).map((e, i) => ({ title: `Column ${i}`, mapper: a => `${a.a}${i}`, visible: true, width: 100 }))
-const columns = { ...colArr }
-
-const entityIds = Object.keys(entities)
-const columnDisplayOrder = Object.keys(columns)
+const rows = new Array(1000).fill(null).map((e, i) => ({ a: 'Cell ' + i  }))
+const col = new Array(1000).fill(null).map((e, i) => ({ title: `Column ${i}`, mapper: a => `${a.a}${i}`, visible: true, width: 70 }))
 
 const tableId = "tableId"
-const canvas = new Canvas('canvas-tableId', { width: 1000, height: 700 })
-const superview = canvas.rootview
-const table = new TableViewController(
-    superview.canvas,
-    entities,
-    entityIds,
+const canvas = new Canvas(`canvas-${tableId}`, 'auto')
+const table = new TableView(
+    canvas.rootview.getFrame(),
+    rows,
+    col,
     CELL_HEIGHT,
-    columns,
-    columnDisplayOrder,
-    true,
-)
-table.setEmptyStateText('No data available')
-const tableEventHandler = new TableEventHandler(
-    canvas,
-    table.tableView,
-    tableId,
-    { show: () => {}, hide: () => {} },
-    { show: () => {}, hide: () => {} }
-)
-const scrollview = new ScrollView(superview.getFrame(), SCROLL_WIDTH)
+    true)
+new TableEventHandler(
+    canvas, table, tableId,
+    { show: () => {}, hide: () => {} })
+const scrollview = new ScrollView(canvas.rootview.getFrame(), SCROLL_WIDTH)
 scrollview.setViewToBeScrolled(table)
-table.tableView.setDidMove(() => {})
-superview.addSubview(scrollview)
+scrollview.resized(scrollview.frame.width, scrollview.frame.height)
+table.setDidMove(scrollview.setProgress)
+canvas.rootview.addSubview(scrollview)
+canvas.rootview.repaint()

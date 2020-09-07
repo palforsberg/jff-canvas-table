@@ -7,20 +7,15 @@ export default class TableEventHandler {
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
       this.canvasKeyDown = this.canvasKeyDown.bind(this)
-      this.canvasKeyUp = this.canvasKeyUp.bind(this)
       this.canvasScroll = this.canvasScroll.bind(this)
       this.getCellForEvent = this.getCellForEvent.bind(this)
       this.onFocus = this.onFocus.bind(this)
       this.onBlur = this.onBlur.bind(this)
-      this.isClickable = this.isClickable.bind(this)
 
-      canvas.domCanvas.addEventListener('mousedown', this.canvasOnClick)
-      document.getElementById(`canvasTable-${tableId}`).oncontextmenu = (e) => false
-      canvas.domCanvas.addEventListener('mousemove', this.canvasMouseMove)
-      window.addEventListener('mouseup', this.canvasMouseUp)
+      table.onMousedown = this.canvasOnClick
+      canvas.domCanvas.oncontextmenu = (e) => false
       canvas.domCanvas.addEventListener('wheel', this.canvasScroll)
-      canvas.domCanvas.addEventListener('keydown', this.canvasKeyDown)
-      canvas.domCanvas.addEventListener('keyup', this.canvasKeyUp)
+      window.addEventListener('keydown', this.canvasKeyDown)
       canvas.domCanvas.addEventListener('focus', this.onFocus)
       canvas.domCanvas.addEventListener('blur', this.onBlur)
       this.table = table
@@ -28,18 +23,13 @@ export default class TableEventHandler {
       this.menuDelegate = menuDelegate
       // canvas.domCanvas.oncontextmenu = (e) => false
       this.cursor = { down: false, start: { x: 0, y: 0 }, movedOutside: false }
-      this.keys = { alt: false }
       this.tableId = tableId
 
       this.focusOnCanvas = () => canvas.domCanvas.focus()
 
       this.reset = () => {
-        // canvas.domCanvas.removeEventListener('mousedown', this.canvasOnClick)
-        canvas.domCanvas.removeEventListener('mousemove', this.canvasMouseMove)
-        window.removeEventListener('mouseup', this.canvasMouseUp)
         canvas.domCanvas.removeEventListener('wheel', this.canvasScroll)
-        canvas.domCanvas.removeEventListener('keydown', this.canvasKeyDown)
-        canvas.domCanvas.removeEventListener('keyup', this.canvasKeyUp)
+        window.removeEventListener('keydown', this.canvasKeyDown)
         canvas.domCanvas.removeEventListener('focus', this.onFocus)
         canvas.domCanvas.removeEventListener('blur', this.onBlur)
       }
@@ -67,7 +57,6 @@ export default class TableEventHandler {
    }
 
    canvasOnClick(event) {
-      // console.log('mouse down ', event)
       if (!this.table.inFocus) {
          this.focusOnCanvas()
       }
@@ -76,15 +65,14 @@ export default class TableEventHandler {
       } else if (event.button == 2) { // Right click
          this.rightClickDown(event)
       }
+      window.addEventListener('mousemove', this.canvasMouseMove)
+      window.addEventListener('mouseup', this.canvasMouseUp)
    }
 
    canvasMouseMove(event) {
       const currentCell = this.getCellForEvent(event)
-      if (!this.cursor.down) { // Hover
-         this.hover(event, currentCell)
-      } else if (event.button == 0) { // Left click
+      if (event.button == 0) { // Left click
          this.leftClickMove(event, currentCell)
-         // this.table.addConfetti(event)
       }
    }
 
@@ -97,14 +85,8 @@ export default class TableEventHandler {
       } else if (event.button == 2) { // Right click
          this.rightClickUp(event, currentCell)
       }
-   }
-
-   hover(event, currentCell) {
-    //   if (this.isClickable(event, currentCell) && this.table.isEventInside(event)) {
-    //      canvas.domCanvas.style.cursor = 'pointer'
-    //   } else {
-    //      canvas.domCanvas.style.cursor = 'default'
-    //   }
+      window.removeEventListener('mousemove', this.canvasMouseMove)
+      window.removeEventListener('mouseup', this.canvasMouseUp)
    }
    leftClickDown(event) {
       const cell = this.getCellForEvent(event)
@@ -130,7 +112,7 @@ export default class TableEventHandler {
    leftClickUp(event, currentCell) {
       if (!this.cursor.movedOutside) { // no cursor movement within one cell. Handle cell.onClick
          const column = this.table.getColumnWithIndex(currentCell.x)
-         if (this.isClickable(event, currentCell)) {
+         if (column && column.onClick) {
             column.onClick(this.table.getRowWithIndex(currentCell.y))
          }
       }
@@ -140,7 +122,7 @@ export default class TableEventHandler {
       const currentCell = this.getCellForEvent(event)
       if (!this.table.isSelected(currentCell.y)) {
          console.log('rc select row')
-         this.table.tmpSelectedRows[this.table.rowIds[currentCell.y]] = undefined
+         this.table.tmpSelectedRows[this.table.rows[currentCell.y]] = undefined
          this.table.selectRow(currentCell.x, currentCell.y, this.table.isMultiSelect && event.ctrlKey)
       }
       console.log('rc select cell ', currentCell)
@@ -155,15 +137,7 @@ export default class TableEventHandler {
    rightClickUp(event, currentCell) {
 
    }
-   canvasKeyUp(event) {
-      if (event.keyCode === keyCodes.ALT) {
-         this.keys.alt = false
-      }
-   }
    canvasKeyDown(event) {
-      if (this.keys.alt) {
-         return
-      }
 
       let handled = false
 
@@ -208,10 +182,6 @@ export default class TableEventHandler {
             this.table.moveActiveDown()
             handled = true
             break
-         case keyCodes.ALT:
-            this.keys.alt = true
-            handled = true
-            break
          default:
       }
       if (event.ctrlKey) {
@@ -235,11 +205,7 @@ export default class TableEventHandler {
       const smallestDelta = 50
       let y = 0
       let x = 0
-      if (event.shiftKey) {
-         const direction = event.deltaY > 0 ? 1 : -1
-         const delta = Math.ceil(smallestDelta / Math.abs(event.deltaY)) * direction
-         x = delta
-      } else if (event.deltaY != 0) {
+      if (event.deltaY != 0) {
          const direction = event.deltaY > 0 ? 1 : -1
          const delta = Math.ceil(smallestDelta / Math.abs(event.deltaY)) * direction
          y = delta
@@ -249,6 +215,7 @@ export default class TableEventHandler {
          x = delta
       }
       this.table.move(x, y)
+      this.table.repaint()
       event.preventDefault()
    }
 
@@ -259,7 +226,7 @@ export default class TableEventHandler {
       const row = this.table.getRowWithIndex(active.y)
       let text
       if (selectedRows.length > 0 && copyRows) {
-         const visibleColumns = this.table.columnIds.map(id => this.table.columns[id]).filter(col => col.visible)
+         const visibleColumns = this.table.columns.filter(col => col.visible)
          text = visibleColumns.map(e => e.mapper(selectedRows)).join('\r\n')
       } else {
          text = column.mapper(row) || ' '
@@ -274,13 +241,10 @@ export default class TableEventHandler {
    getCellForEvent(event) {
       const clickx = event.layerX
       const clicky = event.layerY
-      const nrRows = this.table.rowIds.length
+      const nrRows = this.table.rows.length
       const cellx = this.getColumnIndexForPosition(clickx)
       const celly = Math.floor(clicky / this.table.cellHeight)
       return { x: cellx + this.table.xOffset, y: Math.min(nrRows - 1, celly + this.table.yOffset) }
-   }
-   isInsideTable(event) {
-      return true
    }
 
    getColumnIndexForPosition(x) {
@@ -295,16 +259,5 @@ export default class TableEventHandler {
          start = end
       }
       return -1
-   }
-   isClickable(event, cell) {
-      if (this.table.rowIds.length == 0) {
-         return false
-      }
-      const row = this.table.getRowWithIndex(cell.y)
-      const column = this.table.getColumnWithIndex(cell.x)
-      if (column !== undefined && column.onClick !== undefined && column.mapper(row) !== undefined) {
-         return true
-      }
-      return false
    }
 }

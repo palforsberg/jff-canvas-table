@@ -1,14 +1,14 @@
-import { Cell, IconCell, ICON_MARGIN } from './Cell'
+import { Cell, CellStatus } from './Cell'
 import { View } from './View'
 import { ConfettiView } from './ConfettiView'
 
-export class TableView extends View {
-   constructor(frame, rows, rowIds, cellHeight, columns, columnIds, isMultiSelect) {
+export default class TableView extends View {
+   constructor(frame, rows, columns, cellHeight, isMultiSelect) {
 
       super(frame)
       this.moveTo = this.moveTo.bind(this)
-      this.rowIds = rowIds
       this.rows = rows
+      this.columns = columns
       this.xOffset = 0
       this.yOffset = 0
       this.cellHeight = cellHeight
@@ -23,8 +23,6 @@ export class TableView extends View {
 
       // Delegate function called when table has moved
       this.didMove = () => {}
-      this.columns = columns
-      this.columnIds = columnIds
       // Cache for calculations
       this.cache = {}
       // DOM focus is on the table
@@ -32,17 +30,10 @@ export class TableView extends View {
 
       this.isMultiSelect = isMultiSelect
       this.cellPainter = new Cell(this.cellHeight)
-      this.iconCellPainter = new IconCell(this.cellHeight)
-      this.textColor = "#000000"
-      this.lineColor = "#555555"
-      this.activeColor = "#222222"
+      this.lineColor = "#BBB"
    }
    setColumns(columns) {
       this.columns = columns
-      this.resetCache()
-   }
-   setColumnIds(columnIds) {
-      this.columnIds = columnIds
       this.resetCache()
    }
    resetCache() {
@@ -50,15 +41,11 @@ export class TableView extends View {
       this.cache.minXOffset = undefined
       this.cache.columnLength = undefined
    }
-   setRows(rows, rowIds) {
-      this.rows = rows
-      this.rowIds = rowIds
-   }
    setDidMove(didMove) {
       this.didMove = didMove
    }
    addConfetti(event) {
-      const view = new ConfettiView(this.canvas, { x: event.layerX, y: event.layerY, width: 20, height: 20 })
+      const view = new ConfettiView({ x: event.layerX, y: event.layerY, width: 20, height: 20 })
       this.addSubview(view)
    }
    // Returns number of rows visible at page.
@@ -68,12 +55,12 @@ export class TableView extends View {
 
    // Total number of rows
    getNumberOfRows() {
-      return this.rowIds.length
+      return this.rows.length
    }
 
    // Total number of columns
    getNumberOfColumns() {
-      return this.columnIds.length
+      return this.columns.length
    }
 
    getContentSize() {
@@ -81,50 +68,43 @@ export class TableView extends View {
    }
    // Number of columns visible, i.e. not deselected in Column Picker
    getNumberOfVisibleColumns() {
-      return this.columnIds.filter(i => this.columns[i].visible).length
+      return this.columns.filter(col => col.visible).length
    }
 
    // Column object with index x in table
    getColumnWithIndex(x) {
-      return this.columns[this.columnIds[x]]
-   }
-   resized(width, height) {
-      super.resized(width, height)
-      this.resetCache()
+      return this.columns[x]
    }
    // Total length in pixels for the visible columns
    getCachedColumnLength() {
       return this.cacheFunction('columnLength', () => this.getColumnLength())
    }
    getColumnLength() {
-      return this.columnIds
-         .filter(id => this.columns[id].visible)
-         .reduce((acc, id, i) => {
+      return this.columns
+         .filter(col => col.visible)
+         .reduce((acc, column, i) => {
             let tmp = acc
-            const column = this.columns[id]
             tmp += column.width
             return tmp
          }, 0)
    }
    reset() {
       this.canvas.clear()
-      this.rowIds = []
-      this.rows = {}
-      this.columns = {}
-      this.columnIds = []
+      this.rows = []
+      this.columns = []
    }
 
    // Row object with index y
    getRowWithIndex(y) {
-      return this.rows[this.rowIds[y]]
+      return this.rows[y]
    }
 
    getRowIndexDisplayed(trueRowIndex) {
       return trueRowIndex - this.yOffset
    }
    getRowIndexForId(rowId) {
-      for (let i = 0, len = this.rowIds.length; i < len; i++) {
-         if (this.rowIds[i] === rowId) {
+      for (let i = 0, len = this.rows.length; i < len; i++) {
+         if (this.rows[i] === rowId) {
             return i
          }
       }
@@ -175,6 +155,7 @@ export class TableView extends View {
       const xmax = Math.max(0, this.getCachedMaxXOffset())
       return { x: (this.xOffset - this.getCachedMinXOffset()) / Math.max(xmax - this.getCachedMinXOffset(), 1), y: this.yOffset / Math.max(ymax, 1) }
    }
+
    /**
     * Moves the 'active' handle around the table.
     * Handles moving the viewport to make sure the active handle is always visible.
@@ -237,7 +218,7 @@ export class TableView extends View {
       const columnsWidth = this.getCachedColumnLength()
       const canvasWidth = this.frame.width
       if (columnsWidth < canvasWidth) return 0
-      for (let i = 0; i < this.columnIds.length; i++) {
+      for (let i = 0; i < this.columns.length; i++) {
          const col = this.getColumnWithIndex(i)
          if (col.visible) {
             if (startPoint + canvasWidth > columnsWidth + rightMargin) {
@@ -255,7 +236,7 @@ export class TableView extends View {
       return this.cacheFunction('minXOffset', () => this.getMinXOffset())
    }
    getMinXOffset() {
-      for (let i = 0; i < this.columnIds.length; i++) {
+      for (let i = 0; i < this.columns.length; i++) {
          const col = this.getColumnWithIndex(i)
          if (col.visible) {
             return i
@@ -292,9 +273,9 @@ export class TableView extends View {
       const ymax = Math.max(y1, y2)
       for (let i = ymin; i <= ymax; i++) {
          if (this.isSelected(i)) {
-            this.selectedRows[this.rowIds[i]] = 1
+            this.selectedRows[i] = 1
          } else {
-            this.selectedRows[this.rowIds[i]] = undefined
+            this.selectedRows[i] = undefined
          }
       }
       this.tmpSelectedRows = {}
@@ -314,7 +295,7 @@ export class TableView extends View {
       const ymin = Math.min(y1, y2)
       const ymax = Math.max(y1, y2)
       for (let i = ymin; i <= ymax; i++) {
-         this.tmpSelectedRows[this.rowIds[i]] = 1
+         this.tmpSelectedRows[i] = 1
       }
       this.repaint()
    }
@@ -329,19 +310,19 @@ export class TableView extends View {
    // Select row. Bypasses the tmpSelectedRows routine. Used for example with keyboard-selection.
    selectRow(x, y, append = false) {
       if (!append) this.selectedRows = {}
-      this.selectedRows[this.rowIds[y]] = 1
+      this.selectedRows[y] = 1
       this.repaint()
    }
    // Deselect row. Bypasses the tmpSelectedRows routine. Used for example with keyboard-selection.
    deselect(x, y, append = false) {
       this.active = { x, y }
       if (!append) this.selectedRows = {}
-      else this.selectedRows[this.rowIds[y]] = undefined
+      else this.selectedRows[y] = undefined
       this.repaint()
    }
    // Is row selected. selectedRows XOR tmpSelectedRows contains the row index
    isSelected(y) {
-      return (this.selectedRows[this.rowIds[y]] || 0) + (this.tmpSelectedRows[this.rowIds[y]] || 0) == 1
+      return (this.selectedRows[y] || 0) + (this.tmpSelectedRows[y] || 0) == 1
    }
 
    // Returns the delta to move to make sure x and y is within the viewport
@@ -369,14 +350,10 @@ export class TableView extends View {
 
    // Paint table. Start from yOffset and paint rows the column starting at xOffset.
    // Paints the columnseparators during the firstrow painting.
-   // Draws offscreenCanvas onto canvas.
    paint(canvas, timestamp) {
-      const cellPos = { x: 0, y: 0 }
-      const textInset = { left: 0, right: 0 }
+      let cellPos = { x: 0, y: 0 }
       const endRow = Math.min(this.yOffset + this.getPageHeight() + 1, this.getNumberOfRows())
-      const colSepHeight = this.getPageHeight() * this.cellHeight// (getNumberOfRows - this.yOffset) * this.cellHeight
-      const minXoffset = this.getCachedMinXOffset()
-      let activeFrame
+      const colSepHeight = this.getPageHeight() * this.cellHeight
       let lastColIndex
       canvas.normalText()
       canvas.beginLine(this.lineColor)
@@ -388,10 +365,8 @@ export class TableView extends View {
          for (let j = this.xOffset, len = this.getNumberOfColumns(); j < len; j++) {
             const column = this.getColumnWithIndex(j)
             if (!column.visible) continue
-            const cell = column.icon !== undefined ? this.iconCellPainter : this.cellPainter
-            cell.paintCell(canvas, i, column, cellPos, row, textInset, this.isSelected(i))
+            this.cellPainter.paintCell(canvas, i, column, cellPos, row, this.getCellStatus(i, j))
 
-            if (this.inFocus && this.isActive(j, i)) activeFrame = { x: cellPos.x, y: cellPos.y, width: column.width, height: this.cellHeight }
             if (isFirstRow) {
                this.paintColumnSeparator(canvas, cellPos.x, 0, colSepHeight)
             }
@@ -404,30 +379,22 @@ export class TableView extends View {
          }
          if (isFirstRow) this.paintColumnSeparator(canvas, cellPos.x, 0, colSepHeight)
          this.paintRowSeparator(canvas, cellPos.y)
-         cellPos.y += this.cellHeight
-         cellPos.x = 0
+         cellPos = { x: 0, y: cellPos.y + this.cellHeight }
          isFirstRow = false
       }
       this.paintRowSeparator(canvas, cellPos.y)
       this.shownRows = { y1: this.yOffset, y2: endRow }
       this.shownCols = { x1: this.xOffset, x2: lastColIndex }
       canvas.endLine()
-      if (activeFrame !== undefined) {
-         canvas.drawRect(activeFrame.x + 1, activeFrame.y + 1, activeFrame.width - 2, activeFrame.height - 2, this.activeColor)
-      }
    }
 
-   // Paints the rowseparators on offscreenCanvas
-   paintRowSeparatorsOffscreen() {
-      this.canvas.beginLine()
-      let cellY = 0
-      const endRow = this.getPageHeight() + 1
-      this.offscreenCanvas.beginLine()
-      for (let i = 0; i < endRow; i++) {
-         this.paintRowSeparator(this.offscreenCanvas, cellY)
-         cellY += this.cellHeight
+   getCellStatus(i, j) {
+      if (this.isActive(j, i)) {
+         return CellStatus.ACTIVE
+      } else if (this.isSelected(i)) {
+         return CellStatus.SELECTED
       }
-      this.offscreenCanvas.endLine()
+      return CellStatus.DEFAULT
    }
 
    paintRowSeparator(c, y) {

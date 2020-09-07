@@ -4,6 +4,7 @@ import { ScrollVertical, ScrollHorizontal } from './Scroll'
 export default class ScrollView extends View {
    constructor(frame, SCROLL_WIDTH) {
       super(frame)
+      this.setProgress = this.setProgress.bind(this)
       this.scrolledHorizontal = this.scrolledHorizontal.bind(this)
       this.scrolledVertical = this.scrolledVertical.bind(this)
 
@@ -18,9 +19,7 @@ export default class ScrollView extends View {
    }
 
    resized(width, height) {
-      this.setSize(width, height)
       const childContentSize = this.childView.getContentSize()
-
       const vHandleRatio = height / childContentSize.height
       const hHandleRatio = width / childContentSize.width
 
@@ -35,7 +34,6 @@ export default class ScrollView extends View {
          this.vertical.handler(this.vertical.getProgress(this.vertical.location))
       }
 
-
       this.horizontal.setHandleRatio(hHandleRatio)
       this.vertical.setHandleRatio(vHandleRatio)
 
@@ -44,8 +42,6 @@ export default class ScrollView extends View {
 
       this.vertical.frame = this.getVerticalScrollFrame(width, marginHeight)
       this.horizontal.frame = this.getHorizontalScrollFrame(marginWidth, height)
-
-      this.childView.resized(marginWidth, marginHeight)
    }
 
    setViewToBeScrolled(view) {

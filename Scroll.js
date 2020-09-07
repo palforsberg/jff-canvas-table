@@ -7,8 +7,6 @@ class Scroll extends View {
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
       this.setHandleRatio = this.setHandleRatio.bind(this)
-      window.addEventListener('mousemove', this.canvasMouseMove)
-      window.addEventListener('mouseup', this.canvasMouseUp)
       this.handleLength = 50
       this.location = 0
       this.backgroundColor = "#ddd"
@@ -21,11 +19,7 @@ class Scroll extends View {
       this.handle.backgroundColor = this.getHandleBackgroundColor()
       this.addSubview(this.handle)
       this.hidden = false
-   }
-   reset() {
-      this.canvas.domCanvas.removeEventListener('mousedown', this.canvasOnClick)
-      window.removeEventListener('mousemove', this.canvasMouseMove)
-      window.removeEventListener('mouseup', this.canvasMouseUp)
+      this.clickable = true
    }
    getLocationFromEvent(event) {
       console.error('abstract function')
@@ -52,13 +46,16 @@ class Scroll extends View {
       return this.cursor.down ? this.activeColor : this.inactiveColor
    }
 
-   onClick(event) {
+   onMousedown(event) {
       if (event.button == 0) {
          this.cursor.down = true
          this.cursor.handleDist = this.location - this.getLocationFromEvent(event)
          this.handle.backgroundColor = this.getHandleBackgroundColor()
          this.repaint()
          event.preventDefault()
+
+         window.addEventListener('mousemove', this.canvasMouseMove)
+         window.addEventListener('mouseup', this.canvasMouseUp)
       }
    }
 
@@ -82,6 +79,8 @@ class Scroll extends View {
          this.handle.backgroundColor = this.getHandleBackgroundColor()
          this.repaint()
          event.preventDefault()
+         window.removeEventListener('mousemove', this.canvasMouseMove)
+         window.removeEventListener('mouseup', this.canvasMouseUp)
       }
    }
 

@@ -5,25 +5,14 @@ export class View {
       }
       this.paint = this.paint.bind(this)
       this.onClick = this.onClick.bind(this)
-      this.canvas = undefined
       this.frame = frame
       this.subviews = []
-      this.backgroundColor = undefined
-      this.strokeColor = undefined
-      this.hidden = false
-      this.superview = undefined
       this.clickable = true
+      this.hidden = false
+      this.backgroundColor = undefined
+      this.superview = undefined
+      this.strokeColor = undefined
       this.animation = undefined
-   }
-   resized(width, height) {
-      this.setSize(width, height)
-      for (let i = 0, len = this.subviews.length; i < len; i++) {
-         const view = this.subviews[i]
-         view.resized(width, height)
-      }
-   }
-   setSize(width, height) {
-      this.frame = { x: this.frame.x, y: this.frame.y, width: width, height: height }
    }
    getFrame() {
       return this.frame
@@ -49,6 +38,7 @@ export class View {
    insertViewAtBottom(view) {
       view.setSuperview(this)
       this.subviews.unshift(view)
+      view.viewDidAppear()
    }
    removeFromSuperview() {
       this.superview.removeView(this)
@@ -94,6 +84,15 @@ export class View {
          const view = this.subviews[i]
          if (view.clickable && !view.hidden && view.isPointInside(x, y)) {
             view.onClick(event)
+         }
+      }
+   }
+   onMousedown(event) {
+      for (let i = 0, len = this.subviews.length; i < len; i++) {
+         // go from topmost view to bottommost
+         const view = this.subviews[this.subviews.length - i - 1]
+         if (view.clickable && !view.hidden && view.isEventInside(event) && !event.defaultPrevented) {
+            view.onMousedown(event)
          }
       }
    }
@@ -150,29 +149,19 @@ export default class RootView extends View {
    constructor(frame, canvas) {
       super(frame)
       this.canvas = canvas
-      this.willRepaint = false
       this.actuallyRepaint = this.actuallyRepaint.bind(this)
-      this.lastPaint = 0
-      canvas.domCanvas.addEventListener('mousedown', this.onClick)
-      window.requestAnimationFrame(this.actuallyRepaint)
    }
    reset() {
-      this.willRepaint = false
    }
    repaint() {
       window.requestAnimationFrame(this.actuallyRepaint)
-      // console.log('superview repaint')
-      // this.canvas.clear()
-      // this.actuallyRepaint()
-      // window.requestAnimationFrame(this.actuallyRepaint)
-      // this.paint()
    }
    actuallyRepaint(timestamp) {
       this.canvas.clear()
       this.paintBase(this.canvas, timestamp)
-      if (this.willRepaint) window.requestAnimationFrame(this.actuallyRepaint)
    }
    canvasSizeChanged(width, height) {
-      this.resized(width, height)
+      this.frame.width = width
+      this.frame.height = height
    }
 }

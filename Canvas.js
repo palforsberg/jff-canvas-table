@@ -1,16 +1,27 @@
 import RootView from "./View"
 
 export class Canvas {
-   constructor(canvas, size) {
+   constructor(canvas, size = 'auto') {
+      this.onMousedown = this.onMousedown.bind(this)
       if (typeof canvas === 'string') {
          this.domCanvas = document.getElementById(canvas)
       } else {
          this.domCanvas = canvas
       }
-      this.scaleFactor = 2
+      if (size == 'auto') {
+         size = { width: this.domCanvas.offsetWidth, height: this.domCanvas.offsetHeight }
+      }
+      this.scaleFactor = 1
       this.ctx = this.domCanvas.getContext('2d')
       this.rootview = new RootView({ x: 0, y: 0, ...size }, this)
       this.setFrame(size.width, size.height)
+
+      this.domCanvas.addEventListener('mousedown', this.onMousedown)
+   }
+   onMousedown(event) {
+      if (this.rootview.isEventInside(event)) {
+         this.rootview.onMousedown(event)
+      }
    }
    getFrame() {
       return {
@@ -29,7 +40,7 @@ export class Canvas {
       this.domCanvas.style.height = height
       this.domCanvas.width = Math.ceil(width * this.scaleFactor)
       this.domCanvas.height = Math.ceil(height * this.scaleFactor)
-      // this.ctx.scale(1, 1)
+
       this.ctx.scale(this.scaleFactor, this.scaleFactor)
       this.ctx.font = tempFont
       this.ctx.fillStyle = tempFillStyle
@@ -46,7 +57,7 @@ export class Canvas {
       this.ctx.strokeStyle = color
       this.ctx.strokeRect(x, y, width, height)
    }
-   beginLine(color, width = 0.5, lineCap = 'butt') {
+   beginLine(color, width = 1, lineCap = 'butt') {
       this.ctx.lineWidth = width
       this.ctx.strokeStyle = color
       this.ctx.lineCap = lineCap
@@ -93,9 +104,7 @@ export class Canvas {
       this.ctx.shadowOffsetY = 0
       this.ctx.shadowBlur = blur
    }
-   iconText() {
-      this.ctx.font = '14px glyphicons halflings'
-   }
+
    drawText(x, y, text, align = 'start', color) {
       this.ctx.fillStyle = color
       this.ctx.textAlign = align
