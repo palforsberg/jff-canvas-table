@@ -6,6 +6,8 @@ const TEXT_LINK = 'blue'
 const TEXT = '#000000'
 
 const PADDING = { x: 8, y: 20 }
+const textCache = {}
+
 export class Cell {
    constructor(cellHeight) {
       this.height = cellHeight
@@ -15,10 +17,15 @@ export class Cell {
    // Formats text and calculates the starting point for text.
    paintCell(canvas, rowIndex, column, position, row, status = CellStatus.DEFAULT) {
       canvas.paintRect(position.x, position.y, column.width, this.height, this.getBackgroundColor(rowIndex, status))
+
       const formattedText = Cell.getText(column, row)
       if (formattedText.length == 0) return
-
-      canvas.drawText(PADDING.x + position.x, PADDING.y + position.y, formattedText, 'start', this.getTextColor(column))
+      const size = Cell.getTextWidth(canvas.ctx, formattedText)
+      if (size > (column.width - PADDING.x * 2)) {
+         canvas.drawText(position.x + PADDING.x, PADDING.y + position.y, formattedText, 'start', this.getTextColor(column))
+      } else {
+         canvas.drawText(-PADDING.x + position.x + column.width, PADDING.y + position.y, formattedText, 'end', this.getTextColor(column))
+      }
    }
 
    // Returns different color for clickable cells
@@ -40,6 +47,16 @@ export class Cell {
       const text = column.mapper(row)
       const formattedText = column.numberFormatter !== undefined ? column.numberFormatter(text) : text
       return formattedText || ''
+   }
+
+   static getTextWidth(ctx, text) {
+      let stored = textCache[text.length]
+      if (stored == undefined) {
+         const size = ctx.measureText(text)
+         textCache[text.length] = size.width
+         return size.width
+      }
+      return stored
    }
 }
 

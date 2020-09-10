@@ -1,9 +1,8 @@
-import { View } from './View'
+import View from './View'
 
 class Scroll extends View {
    constructor(frame, handler) {
       super(frame)
-      this.onClick = this.onClick.bind(this)
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
       this.setHandleRatio = this.setHandleRatio.bind(this)
@@ -90,7 +89,7 @@ class Scroll extends View {
       return upperLimit
    }
 
-   getProgress(pos) {
+   getProgress(pos = this.location) {
       if (this.getLength() === this.handleLength) {
          return 0
       }

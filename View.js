@@ -1,10 +1,11 @@
-export class View {
+export default class View {
    constructor(frame) {
       if (frame == undefined) {
          console.error('frame must be set on view')
       }
+      this.repaint = this.repaint.bind(this)
       this.paint = this.paint.bind(this)
-      this.onClick = this.onClick.bind(this)
+      this.getPointInView = this.getPointInView.bind(this)
       this.frame = frame
       this.subviews = []
       this.clickable = true
@@ -70,29 +71,37 @@ export class View {
       this.animation = { func: animation, duration, onComplete, start: undefined }
    }
    isEventInside(event) {
-      return this.isPointInside(event.layerX, event.layerY)
+      return this.isPointInside(event.point.x, event.point.y)
    }
    isPointInside(x, y) {
       return this.frame.x <= x && x <= this.frame.x + this.frame.width &&
             this.frame.y <= y && y <= this.frame.y + this.frame.height
    }
-   onClick(event) {
-      const y = event.layerY
-      const x = event.layerX
-      // console.log('onClick ', x, y)
-      for (let i = 0, len = this.subviews.length; i < len; i++) {
-         const view = this.subviews[i]
-         if (view.clickable && !view.hidden && view.isPointInside(x, y)) {
-            view.onClick(event)
-         }
+   getPointInView(x, y) {
+      const point = { x, y }
+      let currentView = this
+      while (currentView != undefined) {
+         point.x -= currentView.frame.x
+         point.y -= currentView.frame.y
+         currentView = currentView.superview
       }
+
+      return point
    }
+
    onMousedown(event) {
+      const origPoint = { ...event.point }
+
       for (let i = 0, len = this.subviews.length; i < len; i++) {
          // go from topmost view to bottommost
-         const view = this.subviews[this.subviews.length - i - 1]
-         if (view.clickable && !view.hidden && view.isEventInside(event) && !event.defaultPrevented) {
-            view.onMousedown(event)
+         const subview = this.subviews[this.subviews.length - i - 1]
+
+         if (subview.clickable && !subview.hidden && !event.defaultPrevented && subview.isEventInside(event)) {
+            // move point to subviews coordinates
+            event.point = { x: origPoint.x - subview.frame.x, y: origPoint.y - subview.frame.y }
+            subview.onMousedown(event)
+            // move back to this' coordinates
+            event.point = { ...origPoint }
          }
       }
    }
@@ -145,11 +154,12 @@ export class View {
 }
 
 // Must be the first View in a canvas.
-export default class RootView extends View {
+export class RootView extends View {
    constructor(frame, canvas) {
       super(frame)
       this.canvas = canvas
       this.actuallyRepaint = this.actuallyRepaint.bind(this)
+      this.repaint = this.repaint.bind(this)
    }
    reset() {
    }

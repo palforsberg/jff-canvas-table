@@ -1,4 +1,4 @@
-import RootView from "./View"
+import { RootView } from "./View"
 
 export class Canvas {
    constructor(canvas, size = 'auto') {
@@ -11,7 +11,7 @@ export class Canvas {
       if (size == 'auto') {
          size = { width: this.domCanvas.offsetWidth, height: this.domCanvas.offsetHeight }
       }
-      this.scaleFactor = 1
+      this.scaleFactor = 2
       this.ctx = this.domCanvas.getContext('2d')
       this.rootview = new RootView({ x: 0, y: 0, ...size }, this)
       this.setFrame(size.width, size.height)
@@ -19,6 +19,7 @@ export class Canvas {
       this.domCanvas.addEventListener('mousedown', this.onMousedown)
    }
    onMousedown(event) {
+      event.point = { x: event.layerX, y: event.layerY }
       if (this.rootview.isEventInside(event)) {
          this.rootview.onMousedown(event)
       }

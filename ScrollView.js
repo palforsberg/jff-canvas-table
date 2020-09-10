@@ -1,27 +1,31 @@
-import { View } from './View'
+import View from './View'
 import { ScrollVertical, ScrollHorizontal } from './Scroll'
 
 export default class ScrollView extends View {
-   constructor(frame, SCROLL_WIDTH) {
+   constructor(frame, contentSize, SCROLL_WIDTH, delegate) {
       super(frame)
       this.setProgress = this.setProgress.bind(this)
       this.scrolledHorizontal = this.scrolledHorizontal.bind(this)
       this.scrolledVertical = this.scrolledVertical.bind(this)
+      this.onWheel = this.onWheel.bind(this)
 
       this.SCROLL_WIDTH = SCROLL_WIDTH
-
+      this.contentSize = contentSize
+      this.delegate = delegate
       const scrollV = new ScrollVertical(this.getVerticalScrollFrame(frame.width, frame.height), this.scrolledVertical)
       const scrollH = new ScrollHorizontal(this.getHorizontalScrollFrame(frame.width, frame.height), this.scrolledHorizontal)
       this.vertical = scrollV
       this.horizontal = scrollH
       this.addSubview(scrollH)
       this.addSubview(scrollV)
+
+      const canvas = document.getElementById('canvas-tableId')
+      canvas.addEventListener('wheel', this.onWheel)
    }
 
    resized(width, height) {
-      const childContentSize = this.childView.getContentSize()
-      const vHandleRatio = height / childContentSize.height
-      const hHandleRatio = width / childContentSize.width
+      const vHandleRatio = height / this.contentSize.height
+      const hHandleRatio = width / this.contentSize.width
 
       this.horizontal.hidden = hHandleRatio > 1
       this.vertical.hidden = vHandleRatio > 1
@@ -44,19 +48,28 @@ export default class ScrollView extends View {
       this.horizontal.frame = this.getHorizontalScrollFrame(marginWidth, height)
    }
 
-   setViewToBeScrolled(view) {
-      this.childView = view
-      this.insertViewAtBottom(view)
+   onWheel(event) {
+      const c = 0.1
+      if (event.deltaY != 0) {
+         const delta = (event.deltaY * c) / this.frame.height
+         this.scrolledVertical(delta + this.vertical.getProgress())
+      } else if (event.deltaX != 0) {
+         const delta = (event.deltaX * c) / this.frame.width
+         this.scrolledHorizontal(delta + this.horizontal.getProgress())
+      }
+      this.repaint()
+      event.preventDefault()
    }
+
    setProgress(x, y) {
       this.vertical.setProgress(y)
       this.horizontal.setProgress(x)
    }
    scrolledHorizontal(progress) {
-      this.childView.scrolledHorizontal(progress)
+      this.delegate(progress, undefined)
    }
    scrolledVertical(progress) {
-      this.childView.scrolledVertical(progress)
+      this.delegate(undefined, progress)
    }
 
    getVerticalScrollFrame(width, height) {

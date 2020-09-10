@@ -2,36 +2,33 @@
 import * as keyCodes from './keyCodes.js'
 
 export default class TableEventHandler {
-   constructor(canvas, table, tableId, menuDelegate) {
+   constructor(table, tableId, menuDelegate) {
+      const canvas = document.getElementById(`canvas-${tableId}`)
       this.canvasOnClick = this.canvasOnClick.bind(this)
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
       this.canvasKeyDown = this.canvasKeyDown.bind(this)
-      this.canvasScroll = this.canvasScroll.bind(this)
       this.getCellForEvent = this.getCellForEvent.bind(this)
       this.onFocus = this.onFocus.bind(this)
       this.onBlur = this.onBlur.bind(this)
 
       table.onMousedown = this.canvasOnClick
-      canvas.domCanvas.oncontextmenu = (e) => false
-      canvas.domCanvas.addEventListener('wheel', this.canvasScroll)
+      canvas.oncontextmenu = (e) => false
       window.addEventListener('keydown', this.canvasKeyDown)
-      canvas.domCanvas.addEventListener('focus', this.onFocus)
-      canvas.domCanvas.addEventListener('blur', this.onBlur)
+      canvas.addEventListener('focus', this.onFocus)
+      canvas.addEventListener('blur', this.onBlur)
       this.table = table
-      this.table.onClick = this.canvasOnClick
       this.menuDelegate = menuDelegate
-      // canvas.domCanvas.oncontextmenu = (e) => false
+      // canvas.oncontextmenu = (e) => false
       this.cursor = { down: false, start: { x: 0, y: 0 }, movedOutside: false }
       this.tableId = tableId
 
-      this.focusOnCanvas = () => canvas.domCanvas.focus()
+      this.focusOnCanvas = () => canvas.focus()
 
       this.reset = () => {
-        canvas.domCanvas.removeEventListener('wheel', this.canvasScroll)
         window.removeEventListener('keydown', this.canvasKeyDown)
-        canvas.domCanvas.removeEventListener('focus', this.onFocus)
-        canvas.domCanvas.removeEventListener('blur', this.onBlur)
+        canvas.removeEventListener('focus', this.onFocus)
+        canvas.removeEventListener('blur', this.onBlur)
       }
     }
 
@@ -70,6 +67,7 @@ export default class TableEventHandler {
    }
 
    canvasMouseMove(event) {
+      event.point = this.table.getPointInView(event.layerX, event.layerY)
       const currentCell = this.getCellForEvent(event)
       if (event.button == 0) { // Left click
          this.leftClickMove(event, currentCell)
@@ -128,7 +126,7 @@ export default class TableEventHandler {
       console.log('rc select cell ', currentCell)
       this.table.active = currentCell //§ can be set outside table..
       this.hideContextMenu()
-      this.showContextMenu(event.layerX, event.layerY)
+      this.showContextMenu(event.point.x, event.point.y)
       event.preventDefault()
    }
    rightClickMove(event) {
@@ -201,23 +199,6 @@ export default class TableEventHandler {
          event.preventDefault()
       }
    }
-   canvasScroll(event) {
-      const smallestDelta = 50
-      let y = 0
-      let x = 0
-      if (event.deltaY != 0) {
-         const direction = event.deltaY > 0 ? 1 : -1
-         const delta = Math.ceil(smallestDelta / Math.abs(event.deltaY)) * direction
-         y = delta
-      } else if (event.deltaX != 0) {
-         const direction = event.deltaX > 0 ? 1 : -1
-         const delta = Math.ceil(smallestDelta / Math.abs(event.deltaX)) * direction
-         x = delta
-      }
-      this.table.move(x, y)
-      this.table.repaint()
-      event.preventDefault()
-   }
 
    copy(copyRows, withHeader = false) {
       const selectedRows = this.table.getSelectedRows()
@@ -239,8 +220,8 @@ export default class TableEventHandler {
       this.focusOnCanvas()
    }
    getCellForEvent(event) {
-      const clickx = event.layerX
-      const clicky = event.layerY
+      const clickx = event.point ? event.point.x : event.layerX
+      const clicky = event.point ? event.point.y : event.layerY
       const nrRows = this.table.rows.length
       const cellx = this.getColumnIndexForPosition(clickx)
       const celly = Math.floor(clicky / this.table.cellHeight)
