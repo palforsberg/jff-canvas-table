@@ -64,7 +64,7 @@ export default class GridView extends View {
    }
 
    getContentSize() {
-      return { width: this.getCachedColumnLength(), height: this.getNumberOfRows() * this.cellHeight }
+      return { width: this.columns.width, height: this.getNumberOfRows() * this.cellHeight }
    }
    // Number of columns visible, i.e. not deselected in Column Picker
    getNumberOfVisibleColumns() {
@@ -74,19 +74,6 @@ export default class GridView extends View {
    // Column object with index x in table
    getColumnWithIndex(x) {
       return this.columns[x]
-   }
-   // Total length in pixels for the visible columns
-   getCachedColumnLength() {
-      return this.cacheFunction('columnLength', () => this.getColumnLength())
-   }
-   getColumnLength() {
-      return this.columns
-         .filter(col => col.visible)
-         .reduce((acc, column, i) => {
-            let tmp = acc
-            tmp += column.width
-            return tmp
-         }, 0)
    }
    reset() {
       this.canvas.clear()
@@ -131,30 +118,20 @@ export default class GridView extends View {
    moveUp() { this.move(0, -1) }
    moveLeft() { this.move(-1, 0) }
    moveRight() { this.move(1, 0) }
-   move(dx, dy, moveScroll = true) {
-      this.moveTo(this.xOffset + dx, this.yOffset + dy, moveScroll)
+   move(dx, dy) {
+      this.moveTo(this.xOffset + dx, this.yOffset + dy)
    }
-   resetPosition() {
-      this.moveTo(0, 0, true, true)
+   moveToRow(row) {
+      this.moveTo(this.xOffset, row)
    }
-   resetYPosition() {
-      this.moveTo(this.xOffset, 0, true, true)
+   moveToCol(col) {
+      this.moveTo(col, this.yOffset)
    }
-   moveTo(x, y, moveScroll = true, callDelegate = true) {
-      const oldX = this.xOffset
-      const ymax = Math.max(0, this.getMaxYOffset())
-      const xmax = Math.max(0, this.getCachedMaxXOffset())
-      this.xOffset = Math.min(Math.max(this.getCachedMinXOffset(), x), xmax)
-      this.yOffset = Math.min(Math.max(0, y), ymax)
-      if (callDelegate) this.didMove((this.xOffset - this.getCachedMinXOffset()) / Math.max(xmax - this.getCachedMinXOffset(), 1), this.yOffset / Math.max(ymax, 1), moveScroll, oldX !== this.xOffset)
-      // if (paint) this.repaint()
+   moveTo(x, y) {
+      this.xOffset = x
+      this.yOffset = y
    }
-
-   getProgress() {
-      const ymax = Math.max(0, this.getMaxYOffset())
-      const xmax = Math.max(0, this.getCachedMaxXOffset())
-      return { x: (this.xOffset - this.getCachedMinXOffset()) / Math.max(xmax - this.getCachedMinXOffset(), 1), y: this.yOffset / Math.max(ymax, 1) }
-   }
+   
 
    /**
     * Moves the 'active' handle around the table.
@@ -181,74 +158,6 @@ export default class GridView extends View {
          this.move(outOfFrameDelta.x, outOfFrameDelta.y, true)
       }
       this.repaint()
-   }
-
-   // Moves the viewport vertically to location. 0 <= location <= 1
-   scrolledVertical(location) {
-      const nrRows = this.getMaxYOffset()
-      const rowToShow = Math.ceil(nrRows * location)
-      this.moveTo(this.xOffset, rowToShow, false, true)
-   }
-
-   // Moves the viewport horizontally to location. 0 <= location <= 1
-   scrolledHorizontal(location) {
-      const colLength = this.getCachedMaxXOffset()
-      const colToShow = Math.round(colLength * location)
-      this.moveTo(colToShow, this.yOffset, false, true)
-   }
-
-   // Stores return value of funcToCache in cache. Returns cached value if existing
-   cacheFunction(id, funcToCache) {
-      if (this.cache[id] !== undefined) {
-         return this.cache[id]
-      }
-      const newVal = funcToCache()
-      this.cache[id] = newVal
-      return newVal
-   }
-
-   // Return the biggest allowed xOffset to make sure viewport does not show too many empty columns.
-   // xOffset = the first column shown
-   getCachedMaxXOffset() {
-      return this.cacheFunction('maxXOffset', () => this.getMaxXOffset())
-   }
-   getMaxXOffset() {
-      const rightMargin = 50
-      let startPoint = 0
-      const columnsWidth = this.getCachedColumnLength()
-      const canvasWidth = this.frame.width
-      if (columnsWidth < canvasWidth) return 0
-      for (let i = 0; i < this.columns.length; i++) {
-         const col = this.getColumnWithIndex(i)
-         if (col.visible) {
-            if (startPoint + canvasWidth > columnsWidth + rightMargin) {
-               return i
-            }
-            startPoint += col.width
-         }
-      }
-      return 0
-   }
-
-   // Returns the smallest allowed xOffset.
-   // Since columns can be hidden minXOffset is not always 0
-   getCachedMinXOffset() {
-      return this.cacheFunction('minXOffset', () => this.getMinXOffset())
-   }
-   getMinXOffset() {
-      for (let i = 0; i < this.columns.length; i++) {
-         const col = this.getColumnWithIndex(i)
-         if (col.visible) {
-            return i
-         }
-      }
-      return 0
-   }
-
-   // Returns the biggest allowed yOffset to make sure viewport does not show too many empty rows.
-   // yOffset = the first row to show
-   getMaxYOffset() {
-      return this.getNumberOfRows() - this.getPageHeight() + 2
    }
 
    // Get next visible column from start in direction.
@@ -353,7 +262,6 @@ export default class GridView extends View {
    paint(canvas, timestamp) {
       let cellPos = { x: 0, y: 0 }
       const endRow = Math.min(this.yOffset + this.getPageHeight() + 1, this.getNumberOfRows())
-      const colSepHeight = this.getPageHeight() * this.cellHeight
       let lastColIndex
       canvas.normalText()
       canvas.beginLine(this.lineColor)
@@ -368,7 +276,7 @@ export default class GridView extends View {
             this.cellPainter.paintCell(canvas, i, column, cellPos, row, this.getCellStatus(i, j))
 
             if (isFirstRow) {
-               this.paintColumnSeparator(canvas, cellPos.x, 0, colSepHeight)
+               this.paintColumnSeparator(canvas, cellPos.x, 0, this.frame.height)
             }
 
             cellPos.x += column.width
@@ -377,7 +285,7 @@ export default class GridView extends View {
                break
             }
          }
-         if (isFirstRow) this.paintColumnSeparator(canvas, cellPos.x, 0, colSepHeight)
+         if (isFirstRow) this.paintColumnSeparator(canvas, cellPos.x, 0, this.frame.height)
          this.paintRowSeparator(canvas, cellPos.y)
          cellPos = { x: 0, y: cellPos.y + this.cellHeight }
          isFirstRow = false
@@ -401,6 +309,6 @@ export default class GridView extends View {
       c.drawHorizontalLine(0, c.getFrame().width, y + 0.5)
    }
    paintColumnSeparator(c, x, y1, y2) {
-      c.drawVerticalLine(x - 0.5, y1, y2)
+      c.drawVerticalLine(x + 0.5, y1, y2)
    }
 }

@@ -71,7 +71,6 @@ class Scroll extends View {
       event.preventDefault()
    }
 
-
    canvasMouseUp(event) {
       if (event.button == 0) {
          this.cursor.down = false
@@ -96,9 +95,13 @@ class Scroll extends View {
       return pos / (this.getLength() - this.handleLength)
    }
 
-   setProgress(y) {
-      const location = ((this.getLength() - this.handleLength) * y)
+   addDelta(x) {
+      const progress = x + this.getProgress()
+      const limited = Math.min(1, Math.max(0, progress))
+      const location = ((this.getLength() - this.handleLength) * limited)
       this.setLocation(location)
+
+      return limited
       // this.repaint()
    }
 }

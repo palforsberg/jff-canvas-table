@@ -4,7 +4,6 @@ import { ScrollVertical, ScrollHorizontal } from './Scroll'
 export default class ScrollView extends View {
    constructor(frame, contentSize, SCROLL_WIDTH, delegate) {
       super(frame)
-      this.setProgress = this.setProgress.bind(this)
       this.scrolledHorizontal = this.scrolledHorizontal.bind(this)
       this.scrolledVertical = this.scrolledVertical.bind(this)
       this.onWheel = this.onWheel.bind(this)
@@ -52,19 +51,19 @@ export default class ScrollView extends View {
       const c = 0.1
       if (event.deltaY != 0) {
          const delta = (event.deltaY * c) / this.frame.height
-         this.scrolledVertical(delta + this.vertical.getProgress())
-      } else if (event.deltaX != 0) {
+         var progress = this.vertical.addDelta(delta)
+         this.scrolledVertical(progress)
+      } 
+      if (event.deltaX != 0) {
          const delta = (event.deltaX * c) / this.frame.width
-         this.scrolledHorizontal(delta + this.horizontal.getProgress())
+         var progress = this.horizontal.addDelta(delta)
+         this.scrolledHorizontal(progress)
       }
+
       this.repaint()
       event.preventDefault()
    }
 
-   setProgress(x, y) {
-      this.vertical.setProgress(y)
-      this.horizontal.setProgress(x)
-   }
    scrolledHorizontal(progress) {
       this.delegate(progress, undefined)
    }
