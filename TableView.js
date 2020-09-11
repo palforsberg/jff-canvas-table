@@ -13,6 +13,7 @@ export default class TableView extends View {
     constructor(frame, rows, columns, tableId = "tableId") {
         super(frame)
         this.scrollviewDidScroll = this.scrollviewDidScroll.bind(this)
+        this.onColumnSizeChange = this.onColumnSizeChange.bind(this)
 
         this.rows = rows
         this.columns = columns
@@ -20,7 +21,10 @@ export default class TableView extends View {
 
         const insetFrame = { x: ROW_HEADER_WIDTH, y: TABLE_HEADER_HEIGHT, width: frame.width - ROW_HEADER_WIDTH, height: frame.height - TABLE_HEADER_HEIGHT }
 
-        this.columnHeader = new ColumnHeader({ x: ROW_HEADER_WIDTH, y: 0, width: insetFrame.width, height: TABLE_HEADER_HEIGHT }, columns)
+        this.columnHeader = new ColumnHeader(
+            { x: ROW_HEADER_WIDTH, y: 0, width: insetFrame.width, height: TABLE_HEADER_HEIGHT },
+            columns,
+            this.onColumnSizeChange)
         this.rowHeader = new RowHeader({ x: 0, y: TABLE_HEADER_HEIGHT, width: ROW_HEADER_WIDTH, height: insetFrame.height }, this.rows, CELL_HEIGHT)
 
         this.grid = new GridView(
@@ -34,17 +38,16 @@ export default class TableView extends View {
             this.grid, tableId,
             { show: () => {}, hide: () => {} })
 
-        const scrollview = new ScrollView(
+        this.scrollview = new ScrollView(
             insetFrame,
             this.grid.getContentSize(), 
             SCROLL_WIDTH,
             this.scrollviewDidScroll)
 
-        scrollview.resized(scrollview.frame.width, scrollview.frame.height)
         this.addSubview(this.grid)
         this.addSubview(this.columnHeader)
         this.addSubview(this.rowHeader)
-        this.addSubview(scrollview)
+        this.addSubview(this.scrollview)
 
         this.xOffset = this.getXOffsets()
         this.yOffset = this.getyOffsets()
@@ -65,6 +68,14 @@ export default class TableView extends View {
             this.grid.moveToRow(row)
             this.rowHeader.moveTo(row)
         }
+    }
+
+    onColumnSizeChange(column, delta) {
+        const col = this.columns[column]
+        col.width = Math.max(20, col.width + delta)
+        this.columns.width = this.getColumnWidth(this.columns)
+        this.scrollview.resized(this.grid.getContentSize())
+        this.xOffset = this.getXOffsets()
     }
 
     getXOffsets() {

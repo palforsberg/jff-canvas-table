@@ -20,11 +20,12 @@ export default class ScrollView extends View {
 
       const canvas = document.getElementById('canvas-tableId')
       canvas.addEventListener('wheel', this.onWheel)
+      this.resized(this.contentSize)
    }
 
-   resized(width, height) {
-      const vHandleRatio = height / this.contentSize.height
-      const hHandleRatio = width / this.contentSize.width
+   resized(contentSize) {
+      const vHandleRatio = this.frame.height / this.contentSize.height
+      const hHandleRatio = this.frame.width / this.contentSize.width
 
       this.horizontal.hidden = hHandleRatio > 1
       this.vertical.hidden = vHandleRatio > 1
@@ -40,11 +41,12 @@ export default class ScrollView extends View {
       this.horizontal.setHandleRatio(hHandleRatio)
       this.vertical.setHandleRatio(vHandleRatio)
 
-      const marginHeight = height - (this.horizontal.hidden ? 0 : this.horizontal.getFrame().height)
-      const marginWidth = width - (this.vertical.hidden ? 0 : this.vertical.getFrame().width)
+      const marginHeight = this.frame.height - (this.horizontal.hidden ? 0 : this.horizontal.getFrame().height)
+      const marginWidth = this.frame.width - (this.vertical.hidden ? 0 : this.vertical.getFrame().width)
 
-      this.vertical.frame = this.getVerticalScrollFrame(width, marginHeight)
-      this.horizontal.frame = this.getHorizontalScrollFrame(marginWidth, height)
+      this.vertical.frame = this.getVerticalScrollFrame(this.frame.width, marginHeight)
+      this.horizontal.frame = this.getHorizontalScrollFrame(marginWidth, this.frame.height)
+      this.contentSize = contentSize
    }
 
    onWheel(event) {
