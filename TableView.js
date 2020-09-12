@@ -10,7 +10,7 @@ const SCROLL_WIDTH = 12
 const TABLE_HEADER_HEIGHT = 20
 const ROW_HEADER_WIDTH = 30
 export default class TableView extends View {
-    constructor(frame, rows, columns, tableId = "tableId") {
+    constructor(frame, rows, columns) {
         super(frame)
         this.scrollviewDidScroll = this.scrollviewDidScroll.bind(this)
         this.onColumnSizeChange = this.onColumnSizeChange.bind(this)
@@ -34,9 +34,7 @@ export default class TableView extends View {
             CELL_HEIGHT,
             true)
 
-        new TableEventHandler(
-            this.grid, tableId,
-            { show: () => {}, hide: () => {} })
+        new TableEventHandler(this.grid, { show: () => {}, hide: () => {} })
 
         this.scrollview = new ScrollView(
             insetFrame,

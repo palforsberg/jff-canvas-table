@@ -131,7 +131,6 @@ export default class GridView extends View {
       this.xOffset = x
       this.yOffset = y
    }
-   
 
    /**
     * Moves the 'active' handle around the table.
@@ -287,6 +286,11 @@ export default class GridView extends View {
          }
          if (isFirstRow) this.paintColumnSeparator(canvas, cellPos.x, 0, this.frame.height)
          this.paintRowSeparator(canvas, cellPos.y)
+
+         if (i == endRow - 1 && cellPos.x < this.frame.width) { // last row, paint area to the right
+            canvas.paintRect(cellPos.x, 0, this.frame.width - cellPos.x, this.frame.height, 'white')
+         }
+
          cellPos = { x: 0, y: cellPos.y + this.cellHeight }
          isFirstRow = false
       }

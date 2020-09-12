@@ -1,6 +1,6 @@
 import { RootView } from "./View"
 
-export class Canvas {
+export default class Canvas {
    constructor(canvas, size = 'auto') {
       this.onMousedown = this.onMousedown.bind(this)
       if (typeof canvas === 'string') {

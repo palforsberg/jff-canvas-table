@@ -21,8 +21,11 @@ export default class View {
    setSuperview(superview) {
       this.superview = superview
    }
+   viewDidAppearBase() {
+      this.viewDidAppear()
+      this.subviews.forEach(e => e.viewDidAppearBase())
+   }
    viewDidAppear() {
-
    }
    viewDidDisappear() {
 
@@ -34,12 +37,18 @@ export default class View {
       }
       view.setSuperview(this)
       this.subviews.push(view)
-      view.viewDidAppear()
+      if (View.isAdded(this)) {
+         this.viewDidAppearBase()
+         this.repaint()
+      }
    }
    insertViewAtBottom(view) {
       view.setSuperview(this)
       this.subviews.unshift(view)
-      view.viewDidAppear()
+      if (View.isAdded(this)) {
+         this.viewDidAppearBase()
+         this.repaint()
+      }
    }
    removeFromSuperview() {
       this.superview.removeView(this)
@@ -106,7 +115,7 @@ export default class View {
       }
    }
    repaint() {
-      if (this.superview === undefined) {
+      if (!this.hasSuperview()) {
          console.error('cant repaint without superview')
          return
       }
@@ -151,6 +160,24 @@ export default class View {
          }
       }
    }
+
+   getDOMElement() {
+      if (!this.hasSuperview()) {
+         console.error('Cannot get DOM element before view has appeared')
+         return
+      }
+      return this.superview.getDOMElement()
+   }
+
+   static isAdded(view) {
+      if (view instanceof RootView) {
+         return true
+      }
+      if (view == undefined) {
+         return false
+      }
+      return View.isAdded(view.superview)
+   }
 }
 
 // Must be the first View in a canvas.
@@ -173,5 +200,8 @@ export class RootView extends View {
    canvasSizeChanged(width, height) {
       this.frame.width = width
       this.frame.height = height
+   }
+   getDOMElement() {
+      return this.canvas.domCanvas
    }
 }

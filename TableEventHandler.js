@@ -2,8 +2,7 @@
 import * as keyCodes from './keyCodes.js'
 
 export default class TableEventHandler {
-   constructor(table, tableId, menuDelegate) {
-      const canvas = document.getElementById(`canvas-${tableId}`)
+   constructor(table, menuDelegate) {
       this.canvasOnClick = this.canvasOnClick.bind(this)
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
@@ -13,25 +12,29 @@ export default class TableEventHandler {
       this.onBlur = this.onBlur.bind(this)
 
       table.onMousedown = this.canvasOnClick
+      const _viewDidAppear = table.viewDidAppear
+      table.viewDidAppear = () => {
+         this.viewDidAppear()
+         _viewDidAppear()
+      }
+      this.table = table
+      this.menuDelegate = menuDelegate
+      this.cursor = { down: false, start: { x: 0, y: 0 }, movedOutside: false }
+   }
+
+   viewDidAppear() {
+      this.focusOnCanvas = () => canvas.focus()
       canvas.oncontextmenu = (e) => false
       window.addEventListener('keydown', this.canvasKeyDown)
       canvas.addEventListener('focus', this.onFocus)
       canvas.addEventListener('blur', this.onBlur)
-      this.table = table
-      this.menuDelegate = menuDelegate
-      // canvas.oncontextmenu = (e) => false
-      this.cursor = { down: false, start: { x: 0, y: 0 }, movedOutside: false }
-      this.tableId = tableId
-
-      this.focusOnCanvas = () => canvas.focus()
 
       this.reset = () => {
-        window.removeEventListener('keydown', this.canvasKeyDown)
-        canvas.removeEventListener('focus', this.onFocus)
-        canvas.removeEventListener('blur', this.onBlur)
-      }
-    }
-
+         window.removeEventListener('keydown', this.canvasKeyDown)
+         canvas.removeEventListener('focus', this.onFocus)
+         canvas.removeEventListener('blur', this.onBlur)
+       }
+   }
    showContextMenu(x, y) {
       this.menuDelegate.show(x, y)
    }
@@ -213,9 +216,8 @@ export default class TableEventHandler {
          text = column.mapper(row) || ' '
       }
       console.log('copy ', `${text}`.substr(0, 50))
-      const inputElement = document.getElementById(`copyValueInput-${this.tableId}`)
-      inputElement.value = text
-      inputElement.select()
+      this.inputElement.value = text
+      this.inputElement.select()
       document.execCommand('Copy')
       this.focusOnCanvas()
    }

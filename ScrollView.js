@@ -18,9 +18,17 @@ export default class ScrollView extends View {
       this.addSubview(scrollH)
       this.addSubview(scrollV)
 
-      const canvas = document.getElementById('canvas-tableId')
-      canvas.addEventListener('wheel', this.onWheel)
+      const rightCorner = new View({ x: frame.width - SCROLL_WIDTH, y: frame.height - SCROLL_WIDTH, width: SCROLL_WIDTH, height: SCROLL_WIDTH })
+      rightCorner.clickable = false
+      rightCorner.backgroundColor = "white"
+      this.addSubview(rightCorner)
+
       this.resized(this.contentSize)
+   }
+
+   viewDidAppear() {
+      const canvas = this.getDOMElement()
+      canvas.addEventListener('wheel', this.onWheel)
    }
 
    resized(contentSize) {
