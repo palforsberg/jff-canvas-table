@@ -25,12 +25,12 @@ export default class TableEventHandler {
    viewDidAppear() {
       this.focusOnCanvas = () => canvas.focus()
       canvas.oncontextmenu = (e) => false
-      window.addEventListener('keydown', this.canvasKeyDown)
+      canvas.addEventListener('keydown', this.canvasKeyDown)
       canvas.addEventListener('focus', this.onFocus)
       canvas.addEventListener('blur', this.onBlur)
 
       this.reset = () => {
-         window.removeEventListener('keydown', this.canvasKeyDown)
+         canvs.removeEventListener('keydown', this.canvasKeyDown)
          canvas.removeEventListener('focus', this.onFocus)
          canvas.removeEventListener('blur', this.onBlur)
        }

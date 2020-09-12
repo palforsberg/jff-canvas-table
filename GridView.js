@@ -3,7 +3,7 @@ import View from './View'
 import { ConfettiView } from './ConfettiView'
 
 export default class GridView extends View {
-   constructor(frame, rows, columns, cellHeight, isMultiSelect) {
+   constructor(frame, rows, columns, cellHeight, isMultiSelect, onActiveChange) {
 
       super(frame)
       this.moveTo = this.moveTo.bind(this)
@@ -18,6 +18,7 @@ export default class GridView extends View {
       //  Keeps track of selected row during mousemove. Is reseted at mouseup.
       this.tmpSelectedRows = {}
       this.active = { x: 0, y: 0 }
+      this.onActiveChange = onActiveChange
       this.shownRows = { y1: 0, y2: 0 }
       this.shownCols = { x1: 0, x2: 0 }
 
@@ -110,6 +111,11 @@ export default class GridView extends View {
          this.repaint()
       }
    }
+
+   setActive(x, y) {
+      this.active = { x, y }
+      this.onActiveChange(x, y)
+   }
    /**
     * Move the viewport
     * Handles limiting to not allow viewport outside of visible columns / rows
@@ -150,8 +156,7 @@ export default class GridView extends View {
    moveActiveTo(x, y) {
       const ymax = Math.max(0, this.getNumberOfRows() - 1)
       const xmax = Math.max(0, this.getNumberOfColumns() - 1)
-      this.active.x = Math.min(Math.max(0, x), xmax)
-      this.active.y = Math.min(Math.max(0, y), ymax)
+      this.setActive(Math.min(Math.max(0, x), xmax), Math.min(Math.max(0, y), ymax))
       const outOfFrameDelta = this.outOfFrameDelta(this.active.x, this.active.y)
       if (outOfFrameDelta !== undefined) {
          this.move(outOfFrameDelta.x, outOfFrameDelta.y, true)
@@ -192,7 +197,7 @@ export default class GridView extends View {
 
    // Select row temporary during for example mouse movement. Is used to be able to reset etc. selected rows after mouse movement ends.
    tmpSelectRow(x, y, append = false) {
-      this.active = { x, y }
+      this.setActive(x, y)
       this.tmpSelectRowRange(y, y, append)
    }
 
@@ -223,7 +228,7 @@ export default class GridView extends View {
    }
    // Deselect row. Bypasses the tmpSelectedRows routine. Used for example with keyboard-selection.
    deselect(x, y, append = false) {
-      this.active = { x, y }
+      this.setActive(x, y)
       if (!append) this.selectedRows = {}
       else this.selectedRows[y] = undefined
       this.repaint()
