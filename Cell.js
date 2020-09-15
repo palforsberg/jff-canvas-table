@@ -2,7 +2,6 @@ const CELL_EVEN_BACKGROUND = '#F4F4F4'
 const CELL_UNEVEN_BACKGROUND = '#FFFFFF'
 const CELL_SELECTED_BACKGROUND = '#FFFFCC'
 const CELL_ACTIVE_BACKGROUND = '#FFAAAA'
-const TEXT_LINK = 'blue'
 const TEXT = '#000000'
 
 const PADDING = { x: 8, y: 20 }
@@ -15,23 +14,23 @@ export class Cell {
 
    // Paints cell with start at position.
    // Formats text and calculates the starting point for text.
-   paintCell(canvas, rowIndex, column, position, row, status = CellStatus.DEFAULT) {
-      canvas.paintRect(position.x, position.y, column.width, this.height, this.getBackgroundColor(rowIndex, status))
+   paintCell(canvas, rowIndex, width, position, text, status = CellStatus.DEFAULT) {
+      canvas.paintRect(position.x, position.y, width, this.height, this.getBackgroundColor(rowIndex, status))
 
-      const formattedText = Cell.getText(column, row)
-      if (formattedText.length == 0) return
-      const size = Cell.getTextWidth(canvas.ctx, formattedText)
-      if (size > (column.width - PADDING.x * 2)) {
-         canvas.drawText(position.x + PADDING.x, PADDING.y + position.y, formattedText, 'start', this.getTextColor(column))
+      if (text.length == 0) return
+      const size = Cell.getTextWidth(canvas.ctx, text)
+      if (size > (width - PADDING.x * 2)) {
+         canvas.drawText(position.x + PADDING.x, PADDING.y + position.y, text, 'start', this.getTextColor())
       } else {
-         canvas.drawText(-PADDING.x + position.x + column.width, PADDING.y + position.y, formattedText, 'end', this.getTextColor(column))
+         canvas.drawText(-PADDING.x + position.x + width, PADDING.y + position.y, text, 'end', this.getTextColor())
       }
    }
 
    // Returns different color for clickable cells
-   getTextColor(column) {
-      return column.onClick !== undefined ? TEXT_LINK : TEXT
+   getTextColor() {
+      return TEXT
    }
+
    getBackgroundColor(rowIndex, status) {
       switch (status) {
          case CellStatus.DEFAULT:
@@ -41,12 +40,6 @@ export class Cell {
          case CellStatus.ACTIVE:
             return CELL_ACTIVE_BACKGROUND
       }
-   }
-
-   static getText(column, row) {
-      const text = column.mapper(row)
-      const formattedText = column.numberFormatter !== undefined ? column.numberFormatter(text) : text
-      return formattedText || ''
    }
 
    static getTextWidth(ctx, text) {

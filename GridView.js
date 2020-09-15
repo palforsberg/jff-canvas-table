@@ -3,12 +3,12 @@ import View from './View'
 import { ConfettiView } from './ConfettiView'
 
 export default class GridView extends View {
-   constructor(frame, rows, columns, cellHeight, isMultiSelect, onActiveChange) {
+   constructor(frame, dataSupplier, contentWidth, cellHeight, isMultiSelect, onActiveChange) {
 
       super(frame)
       this.moveTo = this.moveTo.bind(this)
-      this.rows = rows
-      this.columns = columns
+      this.dataSupplier = dataSupplier
+      this.contentWidth = contentWidth
       this.xOffset = 0
       this.yOffset = 0
       this.cellHeight = cellHeight
@@ -33,10 +33,6 @@ export default class GridView extends View {
       this.cellPainter = new Cell(this.cellHeight)
       this.lineColor = "#BBB"
    }
-   setColumns(columns) {
-      this.columns = columns
-      this.resetCache()
-   }
    resetCache() {
       this.cache.maxXOffset = undefined
       this.cache.minXOffset = undefined
@@ -56,47 +52,37 @@ export default class GridView extends View {
 
    // Total number of rows
    getNumberOfRows() {
-      return this.rows.length
+      return this.dataSupplier.getNumberOfRows()
    }
 
    // Total number of columns
    getNumberOfColumns() {
-      return this.columns.length
+      return this.dataSupplier.getNumberOfColumns()
    }
 
    getContentSize() {
-      return { width: this.columns.width, height: this.getNumberOfRows() * this.cellHeight }
+      return { width: this.contentWidth, height: this.getNumberOfRows() * this.cellHeight }
    }
    // Number of columns visible, i.e. not deselected in Column Picker
    getNumberOfVisibleColumns() {
-      return this.columns.filter(col => col.visible).length
+      const nrVisible = 0
+      for (let i = 0; i < this.dataSupplier.getNumberOfColumns(); i++) {
+         const col = this.dataSupplier.getColumnData()
+         if (col.visible) {
+            nrVisible++
+         }
+      }
+      return nrVisible
    }
 
    // Column object with index x in table
    getColumnWithIndex(x) {
-      return this.columns[x]
-   }
-   reset() {
-      this.canvas.clear()
-      this.rows = []
-      this.columns = []
+      return this.dataSupplier.getColumnData(x)
    }
 
    // Row object with index y
-   getRowWithIndex(y) {
-      return this.rows[y]
-   }
-
-   getRowIndexDisplayed(trueRowIndex) {
-      return trueRowIndex - this.yOffset
-   }
-   getRowIndexForId(rowId) {
-      for (let i = 0, len = this.rows.length; i < len; i++) {
-         if (this.rows[i] === rowId) {
-            return i
-         }
-      }
-      return -1
+   getCell(x, y) {
+      return this.dataSupplier.getText(x, y)
    }
 
    focused() {
@@ -213,13 +199,6 @@ export default class GridView extends View {
       this.repaint()
    }
 
-   // Returns the row objects which are selected
-   getSelectedRows() {
-      return Object.keys(this.selectedRows)
-         .filter(id => this.selectedRows[id] !== undefined)
-         .map(id => this.rows[id])
-   }
-
    // Select row. Bypasses the tmpSelectedRows routine. Used for example with keyboard-selection.
    selectRow(x, y, append = false) {
       if (!append) this.selectedRows = {}
@@ -272,12 +251,12 @@ export default class GridView extends View {
       let isFirstRow = true
 
       for (let i = this.yOffset; i < endRow; i++) {
-         const row = this.getRowWithIndex(i)
-
+         
          for (let j = this.xOffset, len = this.getNumberOfColumns(); j < len; j++) {
-            const column = this.getColumnWithIndex(j)
+            const text = this.dataSupplier.getText(j, i)
+            const column = this.dataSupplier.getColumnData(j)
             if (!column.visible) continue
-            this.cellPainter.paintCell(canvas, i, column, cellPos, row, this.getCellStatus(i, j))
+            this.cellPainter.paintCell(canvas, i, column.width, cellPos, text, this.getCellStatus(i, j))
 
             if (isFirstRow) {
                this.paintColumnSeparator(canvas, cellPos.x, 0, this.frame.height)

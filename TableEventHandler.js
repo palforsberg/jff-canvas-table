@@ -123,7 +123,7 @@ export default class TableEventHandler {
       const currentCell = this.getCellForEvent(event)
       if (!this.table.isSelected(currentCell.y)) {
          console.log('rc select row')
-         this.table.tmpSelectedRows[this.table.rows[currentCell.y]] = undefined
+         this.table.tmpSelectedRows[this.table.cells[currentCell.y]] = undefined
          this.table.selectRow(currentCell.x, currentCell.y, this.table.isMultiSelect && event.ctrlKey)
       }
       console.log('rc select cell ', currentCell)
@@ -139,9 +139,7 @@ export default class TableEventHandler {
 
    }
    canvasKeyDown(event) {
-
       let handled = false
-
       switch (event.keyCode) {
          case keyCodes.SPACE: 
             this.toggleSelect(this.table.active, event.ctrlKey && this.table.isMultiSelect)
@@ -224,7 +222,7 @@ export default class TableEventHandler {
    getCellForEvent(event) {
       const clickx = event.point ? event.point.x : event.layerX
       const clicky = event.point ? event.point.y : event.layerY
-      const nrRows = this.table.rows.length
+      const nrRows = this.table.dataSupplier.getNumberOfRows()
       const cellx = this.getColumnIndexForPosition(clickx)
       const celly = Math.floor(clicky / this.table.cellHeight)
       return { x: cellx + this.table.xOffset, y: Math.min(nrRows - 1, celly + this.table.yOffset) }

@@ -3,13 +3,13 @@ import View from './View.js'
 const alphabet = [...Array(26)].map((q,i) => String.fromCharCode(i+65))
 
 export default class ColumnHeader extends View {
-    constructor(frame, columns, onColumnSizeChange) {
+    constructor(frame, dataSupplier, onColumnSizeChange) {
         super(frame)
         this.onMousemove = this.onMousemove.bind(this)
         this.onMouseup = this.onMouseup.bind(this)
         this.backgroundColor = "white"
 
-        this.columns = columns
+        this.dataSupplier = dataSupplier
         this.onColumnSizeChange = onColumnSizeChange
 
         this.xOffset = 0
@@ -49,12 +49,12 @@ export default class ColumnHeader extends View {
 
     paint(canvas, timestamp) {
         let xOffset = 0
-        for (let i = this.xOffset; i < this.columns.length; i++) {
-            const col = this.columns[i]
+        for (let i = this.xOffset, len = this.dataSupplier.getNumberOfColumns(); i < len; i++) {
+            const width = this.dataSupplier.getColumnWidth(i)
+
+            canvas.drawText(xOffset + (width / 2), 15, this.getText(i), 'center', 'black')
             
-            canvas.drawText(xOffset + (col.width / 2), 15, this.getText(i), 'center', 'black')
-            
-            xOffset += col.width
+            xOffset += width
             if (xOffset > this.frame.width) {
                 break
             }
@@ -63,12 +63,12 @@ export default class ColumnHeader extends View {
     
     getColumnAtPoint(x) {
         let offset = 0
-        for (let i = this.xOffset; i < this.columns.length; i++) {
-            const column = this.columns[i]
-            if (offset < x && x < offset + column.width) {
+        for (let i = this.xOffset, len = this.dataSupplier.getNumberOfColumns(); i < len; i++) {
+            const width = this.dataSupplier.getColumnWidth(i)
+            if (offset < x && x < offset + width) {
                 return i
             }
-            offset += column.width
+            offset += width
         }
         return undefined
     }

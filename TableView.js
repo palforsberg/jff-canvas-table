@@ -11,28 +11,27 @@ const COLUMN_HEADER = 20
 const ROW_HEADER = 30
 
 export default class TableView extends View {
-    constructor(frame, rows, columns) {
+    constructor(frame, dataSupplier) {
         super(frame)
         this.scrollviewDidScroll = this.scrollviewDidScroll.bind(this)
         this.onColumnSizeChange = this.onColumnSizeChange.bind(this)
         this.onActiveChange = this.onActiveChange.bind(this)
 
-        this.rows = rows
-        this.columns = columns
-        this.columns.width = TableView.getColumnWidth(columns)
+        this.dataSupplier = dataSupplier
+        this.contentWidth = TableView.getColumnWidth(dataSupplier)
 
         const insetFrame = { x: ROW_HEADER, y: COLUMN_HEADER, width: frame.width - ROW_HEADER, height: frame.height - COLUMN_HEADER }
 
         this.columnHeader = new ColumnHeader(
             { x: ROW_HEADER, y: 0, width: insetFrame.width, height: COLUMN_HEADER },
-            columns,
+            dataSupplier,
             this.onColumnSizeChange)
-        this.rowHeader = new RowHeader({ x: 0, y: COLUMN_HEADER, width: ROW_HEADER, height: insetFrame.height }, this.rows, CELL_HEIGHT)
+        this.rowHeader = new RowHeader({ x: 0, y: COLUMN_HEADER, width: ROW_HEADER, height: insetFrame.height }, dataSupplier.getNumberOfRows(), CELL_HEIGHT)
 
         this.grid = new GridView(
             insetFrame,
-            rows,
-            columns,
+            dataSupplier,
+            this.contentWidth,
             CELL_HEIGHT,
             true,
             this.onActiveChange)
@@ -74,17 +73,15 @@ export default class TableView extends View {
     }
 
     onColumnSizeChange(column, delta) {
-        const col = this.columns[column]
-        col.width = Math.max(20, col.width + delta)
-        this.columns.width = TableView.getColumnWidth(this.columns)
+        const col = this.dataSupplier.getColumnWidth(column)
+        col = Math.max(20, col + delta)
+        this.dataSupplier.setColumnWidth(column, col)
+        this.contentWidth = TableView.getColumnWidth(this.columns)
         this.scrollview.resized(this.grid.getContentSize())
         this.xOffset = this.getXOffsets()
     }
 
     onActiveChange(x, y) {
-        const row = this.rows[y]
-        const column = this.columns[x]
-        console.log('active ', x, y, column.mapper(row))
         this.delegate.selected(x, y)
     }
 
@@ -93,13 +90,13 @@ export default class TableView extends View {
         let startPoint = 0
         let minX = 0
         let maxX = 0
-        for (let i = 0; i < this.columns.length; i++) {
-           const col = this.columns[i]
+        for (let i = 0, len = this.dataSupplier.getNumberOfColumns(); i < len; i++) {
+           const col = this.dataSupplier.getColumnData(i)
            if (col.visible) {
                if (minX = 0) {
                    minX = i
                }
-              if (startPoint + this.frame.width > this.columns.width + rightMargin && maxX == 0) {
+              if (startPoint + this.frame.width > this.contentWidth + rightMargin && maxX == 0) {
                  maxX = i
                  break;
               }
@@ -109,16 +106,16 @@ export default class TableView extends View {
         return [minX, maxX]
     }
 
-    // Returns the biggest allowed yOffset to make sure viewport does not show too many empty rows.
+    // Returns the biggest allowed yOffset to make sure viewport does not show too many empty cells.
     // yOffset = the first row to show
     getyOffsets() {
-        return [0, this.rows.length - this.grid.getPageHeight() + 2]
+        return [0, this.dataSupplier.getNumberOfRows() - this.grid.getPageHeight() + 2]
     }
 
-    static getColumnWidth(columns) {
+    static getColumnWidth(supl) {
         let length = 0
-        for (let i = 0; i < columns.length; i++) {
-            length += columns[i].width   
+        for (let i = 0, len = supl.getNumberOfColumns(); i < len; i++) {
+            length += supl.getColumnWidth(i)   
         }
         return length
      }

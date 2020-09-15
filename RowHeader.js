@@ -1,11 +1,11 @@
 import View from './View.js'
 
 export default class RowHeader extends View {
-    constructor(frame, rows, cellHeight) {
+    constructor(frame, numberOfRows, cellHeight) {
         super(frame)
         this.backgroundColor = "white"
 
-        this.rows = rows
+        this.numberOfRows = numberOfRows
         this.cellHeight = cellHeight
 
         this.row = 0
@@ -17,7 +17,7 @@ export default class RowHeader extends View {
 
     paint(canvas, timestamp) {
         let offset = 0
-        for (let i = this.row; i < this.rows.length; i++) {
+        for (let i = this.row; i < this.numberOfRows; i++) {
             canvas.drawText(this.frame.width / 2, offset + (this.cellHeight / 2) + 4, i, 'center', 'black')
             offset += this.cellHeight
         }
