@@ -1,16 +1,14 @@
 import View from './View'
 
 class Scroll extends View {
-   constructor(frame, handler) {
+   constructor(frame, handler, getScrollColor) {
       super(frame)
       this.canvasMouseMove = this.canvasMouseMove.bind(this)
       this.canvasMouseUp = this.canvasMouseUp.bind(this)
       this.setHandleRatio = this.setHandleRatio.bind(this)
       this.handleLength = 50
       this.location = 0
-      this.backgroundColor = "#ddd"
-      this.activeColor = "gray"
-      this.inactiveColor = "gray"
+      this.getScrollColor = getScrollColor
 
       this.cursor = { down: false, handleDist: 0 }
       this.handler = handler
@@ -42,7 +40,7 @@ class Scroll extends View {
       this.setHandleLength(length)
    }
    getHandleBackgroundColor() {
-      return this.cursor.down ? this.activeColor : this.inactiveColor
+      return this.getScrollColor(this.cursor.down)
    }
 
    onMousedown(event) {

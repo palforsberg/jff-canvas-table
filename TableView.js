@@ -22,11 +22,10 @@ export default class TableView extends View {
 
         const insetFrame = { x: ROW_HEADER, y: COLUMN_HEADER, width: frame.width - ROW_HEADER, height: frame.height - COLUMN_HEADER }
 
-        this.columnHeader = new ColumnHeader(
-            { x: ROW_HEADER, y: 0, width: insetFrame.width, height: COLUMN_HEADER },
-            dataSupplier,
-            this.onColumnSizeChange)
+        this.columnHeader = new ColumnHeader({ x: ROW_HEADER, y: 0, width: insetFrame.width, height: COLUMN_HEADER }, dataSupplier, this.onColumnSizeChange)
         this.rowHeader = new RowHeader({ x: 0, y: COLUMN_HEADER, width: ROW_HEADER, height: insetFrame.height }, dataSupplier.getNumberOfRows(), CELL_HEIGHT)
+        this.columnHeader.backgroundColor = dataSupplier.getHeaderBackgroundColor()
+        this.rowHeader.backgroundColor = dataSupplier.getHeaderBackgroundColor()
 
         this.grid = new GridView(
             insetFrame,
@@ -42,12 +41,20 @@ export default class TableView extends View {
             insetFrame,
             this.grid.getContentSize(), 
             SCROLL_WIDTH,
-            this.scrollviewDidScroll)
+            this.scrollviewDidScroll,
+            dataSupplier.getScrollColor)
+        this.scrollview.vertical.backgroundColor = dataSupplier.getScrollBackgroundColor()
+        this.scrollview.horizontal.backgroundColor = dataSupplier.getScrollBackgroundColor()
+
+        const rightCorner = new View({ x: frame.width - SCROLL_WIDTH, y: frame.height - SCROLL_WIDTH, width: SCROLL_WIDTH, height: SCROLL_WIDTH })
+        rightCorner.clickable = false
+        rightCorner.backgroundColor = dataSupplier.getHeaderBackgroundColor()
 
         this.addSubview(this.grid)
         this.addSubview(this.columnHeader)
         this.addSubview(this.rowHeader)
         this.addSubview(this.scrollview)
+        this.addSubview(rightCorner)
 
         this.xOffset = this.getXOffsets()
         this.yOffset = this.getyOffsets()

@@ -2,7 +2,7 @@ import View from './View'
 import { ScrollVertical, ScrollHorizontal } from './Scroll'
 
 export default class ScrollView extends View {
-   constructor(frame, contentSize, SCROLL_WIDTH, delegate) {
+   constructor(frame, contentSize, SCROLL_WIDTH, delegate, getScrollColor) {
       super(frame)
       this.scrolledHorizontal = this.scrolledHorizontal.bind(this)
       this.scrolledVertical = this.scrolledVertical.bind(this)
@@ -11,17 +11,13 @@ export default class ScrollView extends View {
       this.SCROLL_WIDTH = SCROLL_WIDTH
       this.contentSize = contentSize
       this.delegate = delegate
-      const scrollV = new ScrollVertical(this.getVerticalScrollFrame(frame.width, frame.height), this.scrolledVertical)
-      const scrollH = new ScrollHorizontal(this.getHorizontalScrollFrame(frame.width, frame.height), this.scrolledHorizontal)
+      const scrollV = new ScrollVertical(this.getVerticalScrollFrame(frame.width, frame.height), this.scrolledVertical, getScrollColor)
+      const scrollH = new ScrollHorizontal(this.getHorizontalScrollFrame(frame.width, frame.height), this.scrolledHorizontal, getScrollColor)
       this.vertical = scrollV
       this.horizontal = scrollH
       this.addSubview(scrollH)
       this.addSubview(scrollV)
 
-      const rightCorner = new View({ x: frame.width - SCROLL_WIDTH, y: frame.height - SCROLL_WIDTH, width: SCROLL_WIDTH, height: SCROLL_WIDTH })
-      rightCorner.clickable = false
-      rightCorner.backgroundColor = "white"
-      this.addSubview(rightCorner)
 
       this.resized(this.contentSize)
    }

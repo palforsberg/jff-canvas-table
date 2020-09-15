@@ -7,7 +7,6 @@ export default class ColumnHeader extends View {
         super(frame)
         this.onMousemove = this.onMousemove.bind(this)
         this.onMouseup = this.onMouseup.bind(this)
-        this.backgroundColor = "white"
 
         this.dataSupplier = dataSupplier
         this.onColumnSizeChange = onColumnSizeChange

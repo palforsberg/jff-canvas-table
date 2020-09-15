@@ -3,7 +3,6 @@ import View from './View.js'
 export default class RowHeader extends View {
     constructor(frame, numberOfRows, cellHeight) {
         super(frame)
-        this.backgroundColor = "white"
 
         this.numberOfRows = numberOfRows
         this.cellHeight = cellHeight

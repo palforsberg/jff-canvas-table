@@ -30,8 +30,8 @@ export default class GridView extends View {
       this.inFocus = false
 
       this.isMultiSelect = isMultiSelect
-      this.cellPainter = new Cell(this.cellHeight)
-      this.lineColor = "#BBB"
+      this.cellPainter = new Cell(this.cellHeight, dataSupplier.getCellBackgroundColor, dataSupplier.getCellTextColor)
+      this.lineColor = dataSupplier.getSeparatorColor()
    }
    resetCache() {
       this.cache.maxXOffset = undefined
@@ -256,7 +256,7 @@ export default class GridView extends View {
             const text = this.dataSupplier.getText(j, i)
             const column = this.dataSupplier.getColumnData(j)
             if (!column.visible) continue
-            this.cellPainter.paintCell(canvas, i, column.width, cellPos, text, this.getCellStatus(i, j))
+            this.cellPainter.paintCell(canvas, i, j, column.width, cellPos, text, this.getCellStatus(i, j))
 
             if (isFirstRow) {
                this.paintColumnSeparator(canvas, cellPos.x, 0, this.frame.height)
