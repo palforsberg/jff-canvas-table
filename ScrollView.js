@@ -18,7 +18,6 @@ export default class ScrollView extends View {
       this.addSubview(scrollH)
       this.addSubview(scrollV)
 
-
       this.resized(this.contentSize)
    }
 
@@ -70,6 +69,14 @@ export default class ScrollView extends View {
       event.preventDefault()
    }
 
+   setScroll(x, y) {
+      if (x != undefined) {
+         this.horizontal.setProgress(x)
+      }
+      if (y != undefined) {
+         this.vertical.setProgress(y)
+      }
+   }
    scrolledHorizontal(progress) {
       this.delegate(progress, undefined)
    }

@@ -100,7 +100,7 @@ export default class GridView extends View {
 
    setActive(x, y) {
       this.active = { x, y }
-      this.onActiveChange(x, y)
+      this.onActiveChange(x, y, this.outOfFrameDelta(x, y))
    }
    /**
     * Move the viewport
@@ -143,10 +143,6 @@ export default class GridView extends View {
       const ymax = Math.max(0, this.getNumberOfRows() - 1)
       const xmax = Math.max(0, this.getNumberOfColumns() - 1)
       this.setActive(Math.min(Math.max(0, x), xmax), Math.min(Math.max(0, y), ymax))
-      const outOfFrameDelta = this.outOfFrameDelta(this.active.x, this.active.y)
-      if (outOfFrameDelta !== undefined) {
-         this.move(outOfFrameDelta.x, outOfFrameDelta.y, true)
-      }
       this.repaint()
    }
 

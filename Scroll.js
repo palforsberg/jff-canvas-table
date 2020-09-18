@@ -93,6 +93,10 @@ class Scroll extends View {
       return pos / (this.getLength() - this.handleLength)
    }
 
+   setProgress(progress) {
+      this.setLocation(progress * (this.getLength() - this.handleLength))
+   }
+
    addDelta(x) {
       const progress = x + this.getProgress()
       const limited = Math.min(1, Math.max(0, progress))

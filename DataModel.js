@@ -22,7 +22,6 @@ export default class DataModel {
         console.error('must implement in subclass')
     }
 
-    getSeparatorColor = () => '#BBB'
     getCellBackgroundColor(row, col, status) {
         switch (status) {
             case 'DEFAULT':
@@ -31,8 +30,9 @@ export default class DataModel {
                return '#FFFFCC'
             case 'ACTIVE':
                return '#FFAAAA'
-         }
+        }
     }
+    getSeparatorColor = () => '#BBB'
     getCellTextColor = () => '#000'
     getScrollBackgroundColor = () => '#DDD'
     getScrollColor =(active) => active ? '#999' : '#BBB'

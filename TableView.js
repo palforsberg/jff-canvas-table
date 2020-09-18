@@ -56,8 +56,8 @@ export default class TableView extends View {
         this.addSubview(this.scrollview)
         this.addSubview(rightCorner)
 
-        this.xOffset = this.getXOffsets()
-        this.yOffset = this.getyOffsets()
+        this.columnSpan = this.getColumnSpans()
+        this.rowSpan = this.getRowSpans()
 
         this.delegate = { selected: () => {} }
     }
@@ -66,13 +66,13 @@ export default class TableView extends View {
     // x and y will be between 0 and 1
     scrollviewDidScroll(x, y) {
         if (x != undefined) {
-            const [x0, x1] = this.xOffset
+            const [x0, x1] = this.columnSpan
             const column = Math.floor((x1 - x0) * x)
             this.grid.moveToCol(column)
             this.columnHeader.moveTo(column)
         }
         if (y != undefined) {
-            const [y0, y1] = this.yOffset
+            const [y0, y1] = this.rowSpan
             const row = Math.floor((y1 - y0) * y)
             this.grid.moveToRow(row)
             this.rowHeader.moveTo(row)
@@ -80,19 +80,25 @@ export default class TableView extends View {
     }
 
     onColumnSizeChange(column, delta) {
-        const col = this.dataSupplier.getColumnWidth(column)
+        let col = this.dataSupplier.getColumnWidth(column)
         col = Math.max(20, col + delta)
         this.dataSupplier.setColumnWidth(column, col)
-        this.contentWidth = TableView.getColumnWidth(this.columns)
+        this.contentWidth = TableView.getColumnWidth(this.dataSupplier)
         this.scrollview.resized(this.grid.getContentSize())
-        this.xOffset = this.getXOffsets()
+        this.columnSpan = this.getColumnSpans()
     }
 
-    onActiveChange(x, y) {
+    onActiveChange(x, y, outOfFrameDelta) {
         this.delegate.selected(x, y)
+        if (outOfFrameDelta !== undefined) {
+            this.grid.move(outOfFrameDelta.x, outOfFrameDelta.y)
+            this.columnHeader.moveTo(this.grid.xOffset || 0)
+            this.rowHeader.moveTo(this.grid.YOffset || 0)
+            this.scrollview.setScroll(this.grid.xOffset / this.columnSpan[1], this.grid.xOffset / this.rowSpan[1])
+        }
     }
 
-    getXOffsets() {
+    getColumnSpans() {
         const rightMargin = 50
         let startPoint = 0
         let minX = 0
@@ -113,9 +119,9 @@ export default class TableView extends View {
         return [minX, maxX]
     }
 
-    // Returns the biggest allowed yOffset to make sure viewport does not show too many empty cells.
-    // yOffset = the first row to show
-    getyOffsets() {
+    // Returns the biggest allowed rowSpan to make sure viewport does not show too many empty cells.
+    // rowSpan = the first row to show
+    getRowSpans() {
         return [0, this.dataSupplier.getNumberOfRows() - this.grid.getPageHeight() + 2]
     }
 
