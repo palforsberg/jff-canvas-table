@@ -1,5 +1,5 @@
-import View from './View'
-import { ScrollVertical, ScrollHorizontal } from './Scroll'
+import View from './View.js'
+import { ScrollVertical, ScrollHorizontal } from './Scroll.js'
 
 export default class ScrollView extends View {
    constructor(frame, contentSize, SCROLL_WIDTH, delegate, getScrollColor) {

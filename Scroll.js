@@ -1,4 +1,4 @@
-import View from './View'
+import View from './View.js'
 
 class Scroll extends View {
    constructor(frame, handler, getScrollColor) {

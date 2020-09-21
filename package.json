@@ -1,6 +1,6 @@
 {
   "name": "jff-table",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Canvas-based table for fast rendering of big datasets.",
   "main": "main.js",
   "scripts": {

@@ -1,4 +1,4 @@
-import View from './View'
+import View from './View.js'
 
 export class Label extends View {
    constructor(canvas, frame) {

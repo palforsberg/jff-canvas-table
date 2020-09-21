@@ -1,4 +1,4 @@
-import { RootView } from "./View"
+import { RootView } from './View.js'
 
 export default class Canvas {
    constructor(canvas, size = 'auto') {

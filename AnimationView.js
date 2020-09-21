@@ -1,4 +1,4 @@
-import View from './View'
+import View from './View.js'
 
 export class AnimationView extends View {
    constructor(frame) {

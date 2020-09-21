@@ -1,6 +1,5 @@
-import { Cell, CellStatus } from './Cell'
-import View from './View'
-import { ConfettiView } from './ConfettiView'
+import { Cell, CellStatus } from './Cell.js'
+import View from './View.js'
 
 export default class GridView extends View {
    constructor(frame, dataSupplier, contentWidth, cellHeight, isMultiSelect, onActiveChange) {
@@ -40,10 +39,6 @@ export default class GridView extends View {
    }
    setDidMove(didMove) {
       this.didMove = didMove
-   }
-   addConfetti(event) {
-      const view = new ConfettiView({ x: event.layerX, y: event.layerY, width: 20, height: 20 })
-      this.addSubview(view)
    }
    // Returns number of rows visible at page.
    getPageHeight() {

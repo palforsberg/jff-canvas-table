@@ -1,4 +1,4 @@
-import { AnimationView } from './AnimationView'
+import { AnimationView } from './AnimationView.js'
 
 export class ConfettiView extends AnimationView {
    constructor(frame) {

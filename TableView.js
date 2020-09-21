@@ -2,7 +2,7 @@ import View from './View.js'
 import GridView from './GridView.js'
 import ScrollView from './ScrollView.js'
 import TableEventHandler from './TableEventHandler.js'
-import ColumnHeader from './ColumnHeader'
+import ColumnHeader from './ColumnHeader.js'
 import RowHeader from './RowHeader.js'
 
 const CELL_HEIGHT = 30
@@ -94,7 +94,7 @@ export default class TableView extends View {
             this.grid.move(outOfFrameDelta.x, outOfFrameDelta.y)
             this.columnHeader.moveTo(this.grid.xOffset || 0)
             this.rowHeader.moveTo(this.grid.YOffset || 0)
-            this.scrollview.setScroll(this.grid.xOffset / this.columnSpan[1], this.grid.xOffset / this.rowSpan[1])
+            this.scrollview.setScroll(this.grid.xOffset / this.columnSpan[1], this.grid.yOffset / this.rowSpan[1])
         }
     }
 
