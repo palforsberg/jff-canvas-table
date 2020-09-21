@@ -1,0 +1,25 @@
+{
+  "name": "jff-table",
+  "version": "0.0.1",
+  "description": "Canvas-based table for fast rendering of big datasets.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/278204/CanvasTable.git"
+  },
+  "keywords": [
+    "table",
+    "grid",
+    "canvas",
+    "context2d"
+  ],
+  "author": "Pål",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/278204/CanvasTable/issues"
+  },
+  "homepage": "https://github.com/278204/CanvasTable#readme"
+}
