@@ -55,7 +55,7 @@ class SpreadsheetSupplier extends DataModel {
     }
 
     getNumberOfRows() {
-        return 2000
+        return this.cells.length
     }
 
     getColumnWidth(col) {
