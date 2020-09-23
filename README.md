@@ -31,4 +31,4 @@ canvas.rootview.addSubview(tableView)
 ```
 
 ## Demo
-[A demo with a few million cells](https://278204.github.io/jff-table.html)
+[A demo with a few million cells](https://278204.github.io/public/jff-table.html)
