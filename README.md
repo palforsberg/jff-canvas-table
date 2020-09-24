@@ -1,4 +1,4 @@
-# CanvasTable
+# JFF Canvas Table
 
 ## Example
 Simple example with 1000 rows and 1000 columns.

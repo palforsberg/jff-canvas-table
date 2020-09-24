@@ -2,7 +2,7 @@
 import { Canvas, TableView, DataModel } from './src/main.js'
 
 const nrFormatter = new Intl.NumberFormat('en-US')
-const columns = new Array(1000).fill(null).map((e, i) => ({ visible: true, width: 70 }))
+const columns = new Array(1000).fill(null).map((e, i) => ({ visible: true, width: 70, align: 'right' }))
 let index = 0
 const cells = new Array(1000).fill(null)
     .map(c => new Array(1000).fill(null)

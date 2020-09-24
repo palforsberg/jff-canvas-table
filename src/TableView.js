@@ -23,7 +23,7 @@ export default class TableView extends View {
         const insetFrame = { x: ROW_HEADER, y: COLUMN_HEADER, width: frame.width - ROW_HEADER, height: frame.height - COLUMN_HEADER }
 
         this.columnHeader = new ColumnHeader({ x: ROW_HEADER, y: 0, width: insetFrame.width, height: COLUMN_HEADER }, dataSupplier, this.onColumnSizeChange)
-        this.rowHeader = new RowHeader({ x: 0, y: COLUMN_HEADER, width: ROW_HEADER, height: insetFrame.height }, dataSupplier.getNumberOfRows(), CELL_HEIGHT)
+        this.rowHeader = new RowHeader({ x: 0, y: COLUMN_HEADER, width: ROW_HEADER, height: insetFrame.height }, dataSupplier.getNumberOfRows(), CELL_HEIGHT, dataSupplier)
         this.columnHeader.backgroundColor = dataSupplier.getHeaderBackgroundColor()
         this.rowHeader.backgroundColor = dataSupplier.getHeaderBackgroundColor()
 

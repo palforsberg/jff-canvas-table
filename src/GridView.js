@@ -29,7 +29,7 @@ export default class GridView extends View {
       this.inFocus = false
 
       this.isMultiSelect = isMultiSelect
-      this.cellPainter = new Cell(this.cellHeight, dataSupplier.getCellBackgroundColor, dataSupplier.getCellTextColor)
+      this.cellPainter = new Cell(this.cellHeight, dataSupplier.getCellTextColor)
       this.lineColor = dataSupplier.getSeparatorColor()
    }
    resetCache() {
@@ -247,7 +247,10 @@ export default class GridView extends View {
             const text = this.dataSupplier.getText(j, i)
             const column = this.dataSupplier.getColumnData(j)
             if (!column.visible) continue
-            this.cellPainter.paintCell(canvas, i, j, column.width, cellPos, text, this.getCellStatus(i, j))
+            const status = this.getCellStatus(i, j)
+            const backgroundColor = this.dataSupplier.getCellBackgroundColor(i, j, status)
+            const alignment = this.dataSupplier.getColumnAlignment(j)
+            this.cellPainter.paintCell(canvas, column.width, cellPos, text, backgroundColor, alignment)
 
             if (isFirstRow) {
                this.paintColumnSeparator(canvas, cellPos.x, 0, this.frame.height)

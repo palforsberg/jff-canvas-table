@@ -1,7 +1,5 @@
 import View from './View.js'
 
-const alphabet = [...Array(26)].map((q,i) => String.fromCharCode(i+65))
-
 export default class ColumnHeader extends View {
     constructor(frame, dataSupplier, onColumnSizeChange) {
         super(frame)
@@ -50,8 +48,24 @@ export default class ColumnHeader extends View {
         let xOffset = 0
         for (let i = this.xOffset, len = this.dataSupplier.getNumberOfColumns(); i < len; i++) {
             const width = this.dataSupplier.getColumnWidth(i)
+            const text = this.dataSupplier.getColumnHeader(i)
+            const alignment = this.dataSupplier.getColumnAlignment(i, true)
 
-            canvas.drawText(xOffset + (width / 2), 15, this.getText(i), 'center', 'black')
+            canvas.paintRect(xOffset, 0, width, this.frame.height, 'white')
+            if (alignment == 'left') {
+                canvas.drawText(xOffset + 5, 15, text, 'start', 'black')
+            } else {
+                const size = canvas.getTextWidth(text)
+                if (size > width - 10) {
+                    canvas.drawText(xOffset + 5, 15, text, 'start', 'black')
+                } else {
+                    if (alignment == 'center') {
+                        canvas.drawText(xOffset + (width/2), 15, text, 'center', 'black')
+                    } else {
+                        canvas.drawText(xOffset + width - 5, 15, text, 'end', 'black')
+                    }
+                }
+            }
             
             xOffset += width
             if (xOffset > this.frame.width) {
@@ -70,15 +84,5 @@ export default class ColumnHeader extends View {
             offset += width
         }
         return undefined
-    }
-    getText(i) {
-        const al = alphabet.length
-        const q = Math.floor(i / al)
-        const remainder = i % al
-        const ar = alphabet[remainder]
-        if (q <= 0) {
-            return ar;
-        }
-        return this.getText(q - 1) + ar
     }
 }

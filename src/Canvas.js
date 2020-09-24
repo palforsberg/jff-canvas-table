@@ -1,5 +1,7 @@
 import { RootView } from './View.js'
 
+
+const textCache = {}
 export default class Canvas {
    constructor(canvas, size = 'auto') {
       this.onMousedown = this.onMousedown.bind(this)
@@ -115,6 +117,17 @@ export default class Canvas {
       const frame = canvas.getFrame()
       this.ctx.drawImage(canvas.domCanvas, x, y, frame.width, frame.height, x, y, frame.width, frame.height)
    }
+
+   getTextWidth(text) {
+      let stored = textCache[text.length]
+      if (stored == undefined) {
+         const size = this.ctx.measureText(text)
+         textCache[text.length] = size.width
+         return size.width
+      }
+      return stored
+   }
+
    clear() {
       this.ctx.clearRect(0, 0, this.domCanvas.width, this.domCanvas.height)
    }

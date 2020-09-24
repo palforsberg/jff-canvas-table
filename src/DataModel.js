@@ -1,3 +1,4 @@
+const alphabet = [...Array(26)].map((q,i) => String.fromCharCode(i+65))
 export default class DataModel {
 
     getNumberOfColumns() {
@@ -20,6 +21,24 @@ export default class DataModel {
 
     getText(x, y) {
         console.error('must implement in subclass')
+    }
+
+    getRowHeader(row) {
+        return row + 1
+    }
+
+    getColumnHeader(i) {
+        const al = alphabet.length
+        const q = Math.floor(i / al)
+        const remainder = i % al
+        const ar = alphabet[remainder]
+        if (q <= 0) {
+            return ar
+        }
+        return this.getColumnHeader(q - 1) + ar
+    }
+    getColumnAlignment(col, header = false) {
+        return 'right'
     }
 
     getCellBackgroundColor(row, col, status) {
@@ -67,6 +86,12 @@ class SpreadsheetSupplier extends DataModel {
 
     getColumnData(col) {
         return this.columns[col]
+    }
+    getColumnAlignment(col, header = false) {
+        if (header) {
+            return 'center'
+        }
+        return this.columns[col].align || 'right'
     }
     getText(x, y) {
         const cell = this.cells[x][y]
